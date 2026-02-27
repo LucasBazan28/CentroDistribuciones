@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Phone,
   Mail,
@@ -8,7 +9,6 @@ import {
   X,
   ShoppingCart,
   Search,
-  Zap,
 } from "lucide-react";
 
 const navLinks = [
@@ -29,11 +29,14 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
           <div className="hidden items-center gap-6 sm:flex">
             <a
-              href="tel:08102205777"
+              href="tel:5492916431275"
               className="flex items-center gap-1.5 hover:text-accent transition-colors"
             >
               <Phone size={14} />
-              0810-220-5777
+              +54-9-291-643-1275
+            </a>
+            <a href="tel:5492915051422" className="flex items-center gap-2">
+                <Phone size={14} /> +54-9-291-505-1422
             </a>
             <a
               href="mailto:ventas@centrodistribuciones.com.ar"
@@ -46,9 +49,9 @@ export default function Header() {
           <div className="mx-auto flex items-center gap-2 text-xs sm:mx-0 sm:text-sm">
             <span>Envíos a todo el país</span>
             <span className="text-primary-light">|</span>
-            <span>Despachos en 48hs</span>
+            <span>Distribuidor oficial de marcas líderes</span>
             <span className="text-primary-light">|</span>
-            <span>+30 años de trayectoria</span>
+            <span>Asesoramiento técnico especializado</span>
           </div>
         </div>
       </div>
@@ -58,18 +61,13 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Zap size={24} className="text-white" />
-            </div>
-            <div className="leading-tight">
-              <span className="text-lg font-bold text-primary-dark">
-                Centro
-              </span>
-              <br />
-              <span className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
-                Distribuciones
-              </span>
-            </div>
+            <Image 
+              src="/logos/LOGO-CENTRO-DISTRI-CD-CenDist.jpeg" 
+              alt="Centro Distribuciones" 
+              width={150} 
+              height={49}
+              className="object-contain"
+            />
           </a>
 
           {/* Desktop nav */}
@@ -147,14 +145,17 @@ export default function Header() {
               </a>
             </div>
             <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500">
-              <a href="tel:08102205777" className="flex items-center gap-2">
-                <Phone size={14} /> 0810-220-5777
+              <a href="tel:5492916431275" className="flex items-center gap-2">
+                <Phone size={14} /> +54-9-291-643-1275
               </a>
               <a
                 href="mailto:ventas@centrodistribuciones.com.ar"
                 className="flex items-center gap-2"
               >
                 <Mail size={14} /> ventas@centrodistribuciones.com.ar
+              </a>
+              <a href="https://www.google.com/maps/place/Centro+Distribuciones+-+ZOLODA+WEG+LCT+SCAME+WTK+CORTEM+GROUP/@-38.7259464,-62.2717194,21z/data=!4m6!3m5!1s0x95edbd92188900d3:0x6e05b12f9cb8361b!8m2!3d-38.7259148!4d-62.2716594!16s%2Fg%2F11jy1r28dk?entry=ttu&g_ep=EgoyMDI2MDIyMy4wIKXMDSoASAFQAw%3D%3D">
+                Encontranos en Donado 587, Bahía Blanca, Buenos Aires
               </a>
             </div>
           </div>

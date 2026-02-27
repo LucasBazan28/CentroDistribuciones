@@ -1,12 +1,13 @@
 const brands = [
-  { name: "Siemens", initials: "S" },
-  { name: "Schneider Electric", initials: "SE" },
-  { name: "Phoenix Contact", initials: "PC" },
-  { name: "ABB", initials: "ABB" },
-  { name: "Genrod", initials: "G" },
   { name: "Zoloda", initials: "Z" },
-  { name: "IMSA", initials: "IM" },
-  { name: "Prysmian", initials: "P" },
+  { name: "LCT", initials: "L" },
+  { name: "Weg", initials: "W" },
+  { name: "WENTINCK", initials: "WTK" },
+  { name: "TECNOBOX", initials: "TB" },
+  { name: "Accesorios Eléctricos Argentinos S.A.", initials: "AEASA" },
+  { name: "scame", initials: "S" },
+  { name: "HellermannTyton", initials: "HT" },
+  { name: "TRAMONTINA", initials: "T" },
 ];
 
 export default function BrandsSection() {
@@ -18,7 +19,10 @@ export default function BrandsSection() {
             Marcas que Distribuimos
           </h2>
           <p className="mt-3 text-lg text-gray-500">
-            Distribuidor oficial de las marcas líderes del mercado eléctrico
+            DISTRIBUIDOR OFICIAL DE MARCAS LÍDERES
+          </p>
+          <p className="mt-3 text-sm text-gray-500">
+            CON RESPALDO TÉCNICO Y EXPERIENCIA EN PROYECTOS
           </p>
         </div>
 

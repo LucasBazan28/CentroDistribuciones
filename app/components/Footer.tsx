@@ -95,18 +95,21 @@ export default function Footer() {
                   className="mt-0.5 shrink-0 text-primary-light"
                 />
                 <span className="text-sm text-gray-400">
-                  Av. Industrial 1234, CABA
+                  Donado 587, Bahía Blanca,
                   <br />
                   Buenos Aires, Argentina
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="shrink-0 text-primary-light" />
-                <a
-                  href="tel:08102205777"
-                  className="text-sm text-gray-400 hover:text-accent"
-                >
-                  0810-220-5777
+                <a href="tel:5492916431275" className="text-sm text-gray-400 hover:text-accent">
+                  +54-9-291-643-1275
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone size={18} className="shrink-0 text-primary-light" />
+                <a href="tel:5492915051422" className="text-sm text-gray-400 hover:text-accent">
+                  +54-9-291-505-1422
                 </a>
               </li>
               <li className="flex items-center gap-3">
