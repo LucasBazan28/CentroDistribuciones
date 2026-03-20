@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
+import { logoutUser } from "@/lib/auth";
 import {
   Phone,
   Mail,
@@ -9,6 +11,8 @@ import {
   X,
   ShoppingCart,
   Search,
+  UserCircle,
+  LogOut,
 } from "lucide-react";
 
 const navLinks = [
@@ -21,6 +25,24 @@ const navLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    setMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full shadow-md">
@@ -101,9 +123,35 @@ export default function Header() {
                 0
               </span>
             </button>
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+              >
+                <LogOut size={18} />
+                Log out
+              </button>
+            ) : (
+              <div className="flex items-center gap-1 text-sm font-semibold">
+                <a
+                  href="/login"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
+                >
+                  <UserCircle size={18} />
+                  Log in
+                </a>
+                <span className="text-gray-300">|</span>
+                <a
+                  href="/register"
+                  className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
+                >
+                  Register
+                </a>
+              </div>
+            )}
             <a
               href="#contacto"
-              className="ml-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+              className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
             >
               Pedir Presupuesto
             </a>
@@ -135,7 +183,35 @@ export default function Header() {
                 </li>
               ))}
             </ul>
-            <div className="mt-3 flex items-center gap-3 border-t border-gray-100 pt-3">
+            <div className="mt-3 flex flex-col items-center gap-3 border-t border-gray-100 pt-3">
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-500 px-5 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                >
+                  <LogOut size={18} />
+                  Log out
+                </button>
+              ) : (
+                <div className="flex w-full items-center justify-center gap-1 text-sm font-semibold">
+                  <a
+                    href="/login"
+                    className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-primary transition-colors hover:bg-primary/10"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <UserCircle size={18} />
+                    Log in
+                  </a>
+                  <span className="text-gray-300">|</span>
+                  <a
+                    href="/register"
+                    className="rounded-lg px-4 py-2.5 text-primary transition-colors hover:bg-primary/10"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Register
+                  </a>
+                </div>
+              )}
               <a
                 href="#contacto"
                 className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
