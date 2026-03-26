@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+
+const brands = [
+  { name: "Zoloda", logo: "/logos/LOGO-ZOLODA.png" },
+  { name: "Weg", logo: "/logos/LOGO-WEG.jpeg" },
+  { name: "WENTINCK", logo: "/logos/LOGO-WTK.png" },
+  { name: "TECNOBOX", logo: "/logos/LOGO-TECNOBOX-RGB-VERT.png" },
+  { name: "SCAME", logo: "/logos/LOGO-SCAME.jpeg" },
+  { name: "HellermannTyton", logo: "/logos/LOGO-HELLERMANN.jpeg" },
+  { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA-fondo-blanco.jpeg" },
+];
 
 const slides = [
   {
@@ -28,6 +39,12 @@ const slides = [
     ctaHref: "#contacto",
     gradient: "from-primary via-primary-dark to-dark",
   },
+  {
+    title: "Marcas que Distribuimos",
+    subtitle: "Distribuidor oficial de las mejores marcas del mercado",
+    isBrandsSlide: true,
+    gradient: "from-primary-light via-primary to-dark",
+  },
 ];
 
 export default function HeroBanner() {
@@ -42,7 +59,7 @@ export default function HeroBanner() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(next, 6000);
+    const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
   }, [next]);
 
