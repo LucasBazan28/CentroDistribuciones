@@ -82,28 +82,60 @@ export default function HeroBanner() {
               <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full border-[50px] border-white/10" />
             </div>
             <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
-              <div className="max-w-2xl">
-                <h1
-                  className={`text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl ${
-                    index === current ? "animate-slide-left" : ""
-                  }`}
-                >
-                  {slide.title}
-                </h1>
-                <p
-                  className={`mt-4 text-lg leading-relaxed text-white/85 sm:text-xl ${
-                    index === current ? "animate-slide-right" : ""
-                  }`}
-                >
-                  {slide.subtitle}
-                </p>
-                <a
-                  href={slide.ctaHref}
-                  className="mt-8 inline-block rounded-lg bg-accent px-8 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-accent-dark hover:shadow-xl"
-                >
-                  {slide.cta}
-                </a>
-              </div>
+              {slide.isBrandsSlide ? (
+                <div className="w-full text-center">
+                  <h1 className="text-3xl font-bold text-white sm:text-4xl md:text-5xl mb-2 animate-slide-left">
+                    {slide.title}
+                  </h1>
+                  <p className="text-lg text-white/85 mb-8 animate-slide-right">
+                    {slide.subtitle}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
+                    {brands.map((brand) => (
+                      <div
+                        key={brand.name}
+                        className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm p-4 transition-all hover:bg-white/20"
+                      >
+                        <div className="flex h-16 w-16 items-center justify-center">
+                          <Image
+                            src={brand.logo}
+                            alt={brand.name}
+                            width={60}
+                            height={60}
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="mt-2 text-xs font-medium text-white/80 text-center">
+                          {brand.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-2xl">
+                  <h1
+                    className={`text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl ${
+                      index === current ? "animate-slide-left" : ""
+                    }`}
+                  >
+                    {slide.title}
+                  </h1>
+                  <p
+                    className={`mt-4 text-lg leading-relaxed text-white/85 sm:text-xl ${
+                      index === current ? "animate-slide-right" : ""
+                    }`}
+                  >
+                    {slide.subtitle}
+                  </p>
+                  <a
+                    href={slide.ctaHref}
+                    className="mt-8 inline-block rounded-lg bg-accent px-8 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-accent-dark hover:shadow-xl"
+                  >
+                    {slide.cta}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         ))}
