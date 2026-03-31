@@ -90,18 +90,18 @@ export default function HeroBanner() {
                   <p className="text-lg text-white/85 mb-8 animate-slide-right">
                     {slide.subtitle}
                   </p>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7 lg:gap-2">
                     {brands.map((brand) => (
                       <div
                         key={brand.name}
                         className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm p-4 transition-all hover:bg-white/20"
                       >
-                        <div className="flex h-16 w-16 items-center justify-center">
+                        <div className="flex h-20 w-20 items-center justify-center">
                           <Image
                             src={brand.logo}
                             alt={brand.name}
-                            width={60}
-                            height={60}
+                            width={80}
+                            height={80}
                             className="object-contain"
                           />
                         </div>
