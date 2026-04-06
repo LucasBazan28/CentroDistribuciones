@@ -15,6 +15,13 @@ interface Marca {
   nombre: string
 }
 
+interface GrupoDescuento {
+  id: number
+  nombre: string
+  descuento: number
+  marca_id: number
+}
+
 export default function NewProductForm() {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -22,6 +29,8 @@ export default function NewProductForm() {
   const [success, setSuccess] = useState(false)
   const [monedas, setMonedas] = useState<Moneda[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
+  const [gruposDescuento, setGruposDescuento] = useState<GrupoDescuento[]>([])
+  const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<GrupoDescuento[]>([])
 
   const [formData, setFormData] = useState({
     referencia: "",
@@ -34,6 +43,7 @@ export default function NewProductForm() {
     stock: "0",
     observacion: "",
     marca_id: "",
+    grupo_descuento_id: "",
   })
 
   useEffect(() => {
@@ -60,6 +70,11 @@ export default function NewProductForm() {
         console.log("Marcas full response:", marcasRes)
         if (marcasRes.error) throw marcasRes.error
         setMarcas(marcasRes.data || [])
+
+        const gruposRes = await supabase.from("grupo_descuento").select("*").order("nombre")
+        console.log("Grupos descuento full response:", gruposRes)
+        if (gruposRes.error) throw gruposRes.error
+        setGruposDescuento(gruposRes.data || [])
       } catch (err) {
         const message = err instanceof Error ? err.message : "Error loading data"
         setError(`Failed to load form data: ${message}`)
@@ -83,15 +98,30 @@ export default function NewProductForm() {
       stock: "0",
       observacion: "",
       marca_id: "",
+      grupo_descuento_id: "",
     })
+    setGruposDescuentoFiltrados([])
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+
+    if (name === "marca_id") {
+      // Filter discount groups by selected brand
+      const filtered = value ? gruposDescuento.filter(g => g.marca_id === Number(value)) : []
+      setGruposDescuentoFiltrados(filtered)
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        grupo_descuento_id: "", // Reset discount group when brand changes
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -349,6 +379,28 @@ export default function NewProductForm() {
               ))}
             </select>
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="grupo_descuento_id" className="block text-sm font-medium text-gray-700 mb-2">
+            Grupo Descuento <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="grupo_descuento_id"
+            name="grupo_descuento_id"
+            value={formData.grupo_descuento_id}
+            onChange={handleChange}
+            disabled={!formData.marca_id}
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+          >
+            <option value="">{formData.marca_id ? "Seleccionar grupo de descuento" : "Selecciona una marca primero"}</option>
+            {gruposDescuentoFiltrados.map((grupo) => (
+              <option key={grupo.id} value={grupo.id}>
+                {grupo.nombre} ({grupo.descuento}%)
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
