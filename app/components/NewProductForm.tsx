@@ -57,6 +57,7 @@ export default function NewProductForm() {
         setMonedas(monedasRes.data || [])
 
         const marcasRes = await supabase.from("marcas").select("*").order("nombre")
+        console.log("Marcas full response:", marcasRes)
         if (marcasRes.error) throw marcasRes.error
         setMarcas(marcasRes.data || [])
       } catch (err) {
