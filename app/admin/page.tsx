@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Package, Home } from "lucide-react";
+import { Plus, Package, Home, Percent } from "lucide-react";
 
 export default function AdminPage() {
   return (
@@ -37,6 +37,19 @@ export default function AdminPage() {
             />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Manage Stock</h2>
             <p className="text-gray-600">Update product inventory</p>
+          </Link>
+
+          {/* Manage Discounts Card */}
+          <Link
+            href="/admin/manageDiscounts"
+            className="group h-48 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary p-8 flex flex-col justify-center items-center text-center hover:scale-105"
+          >
+            <Percent
+              size={48}
+              className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Manage Discounts</h2>
+            <p className="text-gray-600">Organize discount groups by brand</p>
           </Link>
         </div>
 
