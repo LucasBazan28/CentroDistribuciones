@@ -34,20 +34,15 @@ export async function POST(request: Request) {
       stock = 0,
       observacion,
       marca_id,
+      grupo_descuento_id,
+      categoria_id,
+      activo,
     } = body
 
     // Validate required fields
-    if (!referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id) {
+    if (!referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !grupo_descuento_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
-      )
-    }
-
-    // Validate numeric constraints
-    if (embalaje <= 0) {
-      return NextResponse.json(
-        { error: "Embalaje must be greater than 0" },
         { status: 400 }
       )
     }
@@ -88,7 +83,9 @@ export async function POST(request: Request) {
           stock: parseInt(stock),
           observacion: observacion || null,
           marca_id: marca_id ? parseInt(marca_id) : null,
-          activo: true,
+          grupo_descuento_id: parseInt(grupo_descuento_id),
+          categoria_id: categoria_id ? parseInt(categoria_id) : null,
+          ...(activo !== undefined && { activo }),
         },
       ])
       .select()
@@ -135,7 +132,7 @@ export async function GET(request: Request) {
     // Fetch all articulos with marca info
     const { data, error } = await supabase
       .from("articulos")
-      .select("*, marcas(nombre)")
+      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
       .order("created_at", { ascending: false })
 
     if (error) {
