@@ -1,8 +1,88 @@
 import StockTable from "@/app/components/StockTable"
+import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import { ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
-export default function ManageStockPage() {
+interface Articulo {
+  id: number
+  referencia: string
+  cc: number
+  descripcion: string
+  embalaje: string
+  precio_unitario: number
+  moneda_id: number
+  stock_minimo: number
+  stock: number
+  observacion: string | null
+  marca_id: number | null
+  activo: boolean
+  grupo_descuento_id: number
+  categoria_id: number | null
+  marcas?: { nombre: string } | null
+  grupo_descuento?: { nombre: string }
+  categorias?: { nombre: string } | null
+}
+
+async function fetchArticulos(): Promise<Articulo[]> {
+  try {
+    const supabase = await createSupabaseServerClient()
+
+    // Check auth
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      redirect("/login")
+    }
+
+    // Check if admin
+    const { data: profile, error: profileError } = await supabase
+      .from("perfiles")
+      .select("rol")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profileError || !profile || profile.rol !== "admin") {
+      redirect("/admin")
+    }
+
+    // Fetch all articulos with pagination (1000 rows at a time)
+    let allData: Articulo[] = []
+    let offset = 0
+    const pageSize = 1000
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("articulos")
+        .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + pageSize - 1)
+
+      if (error) {
+        throw error
+      }
+
+      if (!data || data.length === 0) {
+        break
+      }
+
+      allData = [...allData, ...data]
+
+      if (data.length < pageSize) {
+        break
+      }
+
+      offset += pageSize
+    }
+    return allData
+  } catch (error) {
+    console.error("Error fetching articulos:", error)
+    return []
+  }
+}
+
+export default async function ManageStockPage() {
+  const articulos = await fetchArticulos()
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -32,7 +112,7 @@ export default function ManageStockPage() {
 
         {/* Table Container */}
         <div className="rounded-2xl bg-white p-8 shadow-lg">
-          <StockTable />
+          <StockTable initialData={articulos} />
         </div>
 
         {/* Info Box */}

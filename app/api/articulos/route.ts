@@ -129,7 +129,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Fetch all articulos with marca info
+    // Fetch all articulos with related data
     const { data, error } = await supabase
       .from("articulos")
       .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
