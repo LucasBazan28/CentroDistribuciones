@@ -7,8 +7,8 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Panel</h1>
-          <p className="text-gray-600">Manage your products and inventory</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
+          <p className="text-gray-600">Gestiona tus productos e inventario</p>
         </div>
 
         {/* Navigation Cards */}
@@ -22,8 +22,8 @@ export default function AdminPage() {
               size={48}
               className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
             />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">New Product</h2>
-            <p className="text-gray-600">Add a new product to your catalog</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Producto nuevo</h2>
+            <p className="text-gray-600">Agregá un producto nuevo a tu catálogo</p>
           </Link>
 
           {/* Manage Stock Card */}
@@ -35,8 +35,8 @@ export default function AdminPage() {
               size={48}
               className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
             />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Manage Stock</h2>
-            <p className="text-gray-600">Update product inventory</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrar Stock</h2>
+            <p className="text-gray-600">Actualiza el inventario de tus productos</p>
           </Link>
 
           {/* Manage Discounts Card */}
@@ -48,8 +48,8 @@ export default function AdminPage() {
               size={48}
               className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
             />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Manage Discounts</h2>
-            <p className="text-gray-600">Organize discount groups by brand</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrar Descuentos</h2>
+            <p className="text-gray-600">Organiza grupos de descuento por marca</p>
           </Link>
         </div>
 
@@ -60,7 +60,7 @@ export default function AdminPage() {
             className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-300"
           >
             <Home size={20} />
-            Back to Home
+            Volver a la página principal
           </Link>
         </div>
       </div>

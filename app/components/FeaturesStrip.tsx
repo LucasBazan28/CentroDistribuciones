@@ -8,8 +8,8 @@ const features = [
   },
   {
     icon: Clock,
-    title: "Despachos en 48hs",
-    description: "Procesamos y despachamos tu pedido en un máximo de 48 horas hábiles.",
+    title: "Despachos rápidos y confiables",
+    description: "Procesamos y despachamos tu pedido en tiempo récord para que lo recibas cuanto antes.",
   },
   {
     icon: Award,

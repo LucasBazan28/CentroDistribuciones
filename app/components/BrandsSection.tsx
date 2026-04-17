@@ -1,14 +1,15 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const brands = [
-  { name: "Zoloda", logo: "/logos/LOGO-ZOLODA.png" },
+  { name: "ZOLODA", logo: "/logos/LOGO-ZOLODA.png" },
   //{ name: "LCT", initials: "L" },
-  { name: "Weg", logo: "/logos/LOGO-WEG.jpeg" },
+  { name: "WEG", logo: "/logos/LOGO-WEG.jpeg" },
   { name: "WENTINCK", logo: "/logos/LOGO-WTK.png" },
   { name: "TECNOBOX", logo: "/logos/LOGO-TECNOBOX-RGB-VERT.png" },
   //{ name: "Accesorios Eléctricos Argentinos S.A.", initials: "AEASA" },
   { name: "SCAME", logo: "/logos/LOGO-SCAME.jpeg" },
-  { name: "HellermannTyton", logo: "/logos/LOGO-HELLERMANN.jpeg" },
+  { name: "HELLERMANN TYTON", logo: "/logos/LOGO-HELLERMANN.jpeg" },
   { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA-fondo-blanco.jpeg" },
 ];
 
@@ -30,9 +31,9 @@ export default function BrandsSection() {
 
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
           {brands.map((brand) => (
-            <a
+            <Link
               key={brand.name}
-              href="#"
+              href={`/products?brand=${encodeURIComponent(brand.name)}`}
               className="group flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-8 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
             >
               <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
@@ -47,10 +48,11 @@ export default function BrandsSection() {
               <span className="mt-3 text-sm font-medium text-gray-500 transition-colors group-hover:text-primary">
                 {brand.name}
               </span>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
     </section>
   );
 }
+

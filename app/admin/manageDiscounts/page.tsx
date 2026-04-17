@@ -225,7 +225,7 @@ export default function ManageDiscountsPage() {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-12 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-gray-600">Loading...</span>
+          <span className="ml-2 text-gray-600">Cargando...</span>
         </div>
       </div>
     )
@@ -237,7 +237,7 @@ export default function ManageDiscountsPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-4xl font-bold text-gray-900">Manage Discounts</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Administrar Descuentos</h1>
             {!showForm && (
               <button
                 onClick={() => {
@@ -247,11 +247,11 @@ export default function ManageDiscountsPage() {
                 className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-semibold transition-colors"
               >
                 <Plus size={20} />
-                New Discount
+                Nuevo Descuento
               </button>
             )}
           </div>
-          <p className="text-gray-600">Organize discount groups by brand</p>
+          <p className="text-gray-600">Organiza grupos de descuento por marca</p>
         </div>
 
         {/* Messages */}
@@ -269,7 +269,7 @@ export default function ManageDiscountsPage() {
           <div className="mb-6 flex gap-3 rounded-lg bg-green-50 p-4 text-green-600">
             <CheckCircle className="h-5 w-5 flex-shrink-0 pt-0.5" />
             <div>
-              <h3 className="font-semibold">Success</h3>
+              <h3 className="font-semibold">Éxito</h3>
               <p className="text-sm">{success}</p>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function ManageDiscountsPage() {
           <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">
-                {editingId ? "Edit Discount Group" : "Create New Discount Group"}
+                {editingId ? "Editar Grupo de Descuento" : "Crear Nuevo Grupo de Descuento"}
               </h2>
               <button onClick={resetForm} className="text-gray-500 hover:text-gray-700">
                 <X size={24} />
@@ -291,7 +291,7 @@ export default function ManageDiscountsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="marca_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Brand <span className="text-red-500">*</span>
+                    Marca <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="marca_id"
@@ -302,7 +302,7 @@ export default function ManageDiscountsPage() {
                     disabled={!!editingId}
                     className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select a brand</option>
+                    <option value="">Seleccione una marca</option>
                     {marcas.map((marca) => (
                       <option key={marca.id} value={marca.id}>
                         {marca.nombre}
@@ -313,7 +313,7 @@ export default function ManageDiscountsPage() {
 
                 <div>
                   <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
-                    Name <span className="text-red-500">*</span>
+                    Nombre <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="nombre"
@@ -330,7 +330,7 @@ export default function ManageDiscountsPage() {
 
               <div>
                 <label htmlFor="descuento" className="block text-sm font-medium text-gray-700 mb-2">
-                  Discount (%) <span className="text-red-500">*</span>
+                  Descuento (%) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="descuento"
@@ -355,12 +355,12 @@ export default function ManageDiscountsPage() {
                   {submitting ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      Saving...
+                      Guardando...
                     </>
                   ) : (
                     <>
                       <Save className="h-5 w-5" />
-                      Save
+                      Guardar
                     </>
                   )}
                 </button>
@@ -369,7 +369,7 @@ export default function ManageDiscountsPage() {
                   onClick={resetForm}
                   className="rounded-lg border border-gray-300 px-6 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                 >
-                  Cancel
+                  Cancelar
                 </button>
               </div>
             </form>
@@ -386,7 +386,7 @@ export default function ManageDiscountsPage() {
                 <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-6 py-4 border-b border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900">{marca.nombre}</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    {grupos.length} discount group{grupos.length !== 1 ? "s" : ""}
+                    {grupos.length} grupo{grupos.length !== 1 ? "s" : ""} de descuento
                   </p>
                 </div>
 
@@ -396,9 +396,9 @@ export default function ManageDiscountsPage() {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
-                          <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Discount</th>
-                          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Descuento (%)</th>
+                          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -418,7 +418,7 @@ export default function ManageDiscountsPage() {
                                 className="inline-flex items-center gap-1 px-3 py-1 text-sm rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 <Edit2 size={16} />
-                                Edit
+                                Editar
                               </button>
                               <button
                                 onClick={() => handleDelete(grupo.id)}
@@ -426,7 +426,7 @@ export default function ManageDiscountsPage() {
                                 className="inline-flex items-center gap-1 px-3 py-1 text-sm rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 <Trash2 size={16} />
-                                Delete
+                                Eliminar
                               </button>
                             </td>
                           </tr>
@@ -436,7 +436,7 @@ export default function ManageDiscountsPage() {
                   </div>
                 ) : (
                   <div className="px-6 py-12 text-center text-gray-500">
-                    <p>No discount groups for this brand yet</p>
+                    <p>No hay grupos de descuento para esta marca aún</p>
                   </div>
                 )}
               </div>
@@ -450,7 +450,7 @@ export default function ManageDiscountsPage() {
             href="/admin"
             className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
           >
-            Back to Admin
+            Volver al Panel de Administración
           </Link>
         </div>
       </div>

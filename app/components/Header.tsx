@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 const navLinks = [
-  { label: "Productos", href: "#productos" },
+  { label: "Productos", href: "/products" },
   { label: "Automatización", href: "#categorias" },
   { label: "Iluminación", href: "#categorias" },
   { label: "Cables", href: "#categorias" },
@@ -130,7 +130,7 @@ export default function Header() {
                 className="flex items-center gap-1.5 rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
               >
                 <LogOut size={18} />
-                Log out
+                Salir
               </button>
             ) : (
               <div className="flex items-center gap-1 text-sm font-semibold">
@@ -139,14 +139,14 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
                 >
                   <UserCircle size={18} />
-                  Log in
+                  Iniciar Sesión
                 </a>
                 <span className="text-gray-300">|</span>
                 <a
                   href="/register"
                   className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
                 >
-                  Register
+                  Registrarse
                 </a>
               </div>
             )}
@@ -191,7 +191,7 @@ export default function Header() {
                   className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-500 px-5 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
                 >
                   <LogOut size={18} />
-                  Log out
+                  Salir
                 </button>
               ) : (
                 <div className="flex w-full items-center justify-center gap-1 text-sm font-semibold">
@@ -201,7 +201,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   >
                     <UserCircle size={18} />
-                    Log in
+                    Iniciar Sesión
                   </a>
                   <span className="text-gray-300">|</span>
                   <a
@@ -209,7 +209,7 @@ export default function Header() {
                     className="rounded-lg px-4 py-2.5 text-primary transition-colors hover:bg-primary/10"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Register
+                    Registrarse
                   </a>
                 </div>
               )}

@@ -111,29 +111,78 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const supabase = await createSupabaseServerClient()
+    const { searchParams } = new URL(request.url)
 
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // Check if this is a public browse request
+    const isPublic = searchParams.get("public") === "true"
+
+    if (!isPublic) {
+      // Original admin-only endpoint
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("perfiles")
+        .select("rol")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (profileError || !profile || profile.rol !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+
+      const { data, error } = await supabase
+        .from("articulos")
+        .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json(data)
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from("perfiles")
-      .select("rol")
-      .eq("id", user.id)
-      .maybeSingle()
+    // Public browse endpoint
+    const search = searchParams.get("search")?.toLowerCase() || ""
+    const category = searchParams.get("category")
+    const brand = searchParams.get("brand")
+    const minPrice = searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")!) : null
+    const maxPrice = searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!) : null
+    const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : 0
+    const limit = Math.min(parseInt(searchParams.get("limit") || "60"), 500)
 
-    if (profileError || !profile || profile.rol !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    // Fetch all articulos with related data
-    const { data, error } = await supabase
+    let query = supabase
       .from("articulos")
-      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+      .select("id, referencia, descripcion, precio_unitario, stock, categoria_id, marca_id, grupo_descuento_id, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)", { count: "exact" })
+      .eq("activo", true)
+
+    // Apply filters
+    if (category) {
+      query = query.eq("categoria_id", parseInt(category))
+    }
+
+    if (brand) {
+      query = query.eq("marca_id", parseInt(brand))
+    }
+
+    if (minPrice !== null) {
+      query = query.gte("precio_unitario", minPrice)
+    }
+
+    if (maxPrice !== null) {
+      query = query.lte("precio_unitario", maxPrice)
+    }
+
+    // Apply search filter - must be done client-side as Supabase text search needs full-text index
+    const { data: allData, error } = await query
       .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       return NextResponse.json(
@@ -142,7 +191,23 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json(data)
+    // Apply search filter if provided
+    let filteredData = allData || []
+    if (search) {
+      filteredData = filteredData.filter((item: any) => {
+        const searchFields = [
+          item.referencia,
+          item.descripcion,
+          item.marcas?.nombre || "",
+          item.categorias?.nombre || "",
+        ]
+        return searchFields.some((field: string) =>
+          field.toLowerCase().includes(search)
+        )
+      })
+    }
+
+    return NextResponse.json(filteredData)
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(
