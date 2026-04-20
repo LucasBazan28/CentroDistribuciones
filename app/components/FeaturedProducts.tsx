@@ -1,6 +1,7 @@
 import { ShoppingCart, Eye } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
 import { Product } from "@/app/lib/types";
+import FeaturedProductsList from "./FeaturedProductsList";
 
 const gradients = [
   "bg-gradient-to-br from-blue-100 to-blue-200",
@@ -72,54 +73,7 @@ export default async function FeaturedProducts() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.length > 0 ? (
-            products.map((product) => (
-              <div
-                key={product.id}
-                className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all hover:-translate-y-1 hover:shadow-lg"
-              >
-                {/* Product image placeholder */}
-                <div
-                  className={`relative flex h-48 items-center justify-center ${getGradientForProduct(
-                    product.id
-                  )}`}
-                >
-                  <span className="text-4xl font-light text-gray-300">
-                    {product.categorias?.nombre?.charAt(0) || "P"}
-                  </span>
-                  <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
-                      aria-label="Ver detalle"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
-                      aria-label="Agregar al carrito"
-                    >
-                      <ShoppingCart size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    {product.categorias?.nombre || "Sin categoría"}
-                  </span>
-                  <h3 className="mt-1.5 text-sm font-semibold leading-snug text-gray-800 line-clamp-2">
-                    {product.referencia} - {product.descripcion}
-                  </h3>
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatPrice(product.precio_venta)}
-                    </span>
-                    <button className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
-                      Ver más
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+            <FeaturedProductsList products={products} />
           ) : (
             <div className="col-span-full text-center py-12">
               <p className="text-gray-500">No hay productos disponibles</p>

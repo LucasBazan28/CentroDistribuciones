@@ -1,14 +1,9 @@
-"use client"
+"use client";
 
-import { Eye, ShoppingCart } from "lucide-react"
-import { Product } from "@/app/lib/types"
-import { useCart } from "@/app/lib/cartContext"
-import { useToast } from "@/app/lib/toastProvider"
-
-interface ProductGridProps {
-  products: Product[]
-  isLoading?: boolean
-}
+import { Eye, ShoppingCart } from "lucide-react";
+import { Product } from "@/app/lib/types";
+import { useCart } from "@/app/lib/cartContext";
+import { useToast } from "@/app/lib/toastProvider";
 
 const gradients = [
   "bg-gradient-to-br from-blue-100 to-blue-200",
@@ -19,10 +14,10 @@ const gradients = [
   "bg-gradient-to-br from-cyan-100 to-cyan-200",
   "bg-gradient-to-br from-gray-100 to-gray-200",
   "bg-gradient-to-br from-yellow-100 to-yellow-200",
-]
+];
 
 function getGradientForProduct(id: number): string {
-  return gradients[id % gradients.length]
+  return gradients[id % gradients.length];
 }
 
 function formatPrice(price: number): string {
@@ -30,10 +25,14 @@ function formatPrice(price: number): string {
     style: "currency",
     currency: "COP",
     minimumFractionDigits: 0,
-  }).format(price)
+  }).format(price);
 }
 
-export default function ProductGrid({ products, isLoading = false }: ProductGridProps) {
+interface FeaturedProductsListProps {
+  products: Product[];
+}
+
+export default function FeaturedProductsList({ products }: FeaturedProductsListProps) {
   const { addItem } = useCart();
   const { addToast } = useToast();
 
@@ -41,33 +40,9 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
     addItem(product, 1);
     addToast(`${product.referencia} agregado al carrito`, "success");
   };
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-2xl bg-gray-100 h-80 animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
-  if (products.length === 0) {
-    return (
-      <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50 py-16 px-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No hay productos que coincidan
-          </h3>
-          <p className="text-gray-600">
-            Intenta ajustar los filtros o términos de búsqueda
-          </p>
-        </div>
-      </div>
-    )
-  }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <>
       {products.map((product) => (
         <div
           key={product.id}
@@ -106,14 +81,6 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
             <h3 className="mt-1.5 text-sm font-semibold leading-snug text-gray-800 line-clamp-2">
               {product.referencia} - {product.descripcion}
             </h3>
-
-            {/* Brand Info */}
-            {product.marcas && (
-              <p className="mt-1 text-xs text-gray-500">
-                {product.marcas.nombre}
-              </p>
-            )}
-
             <div className="mt-3 flex items-center justify-between">
               <span className="text-lg font-bold text-gray-900">
                 {formatPrice(product.precio_venta)}
@@ -122,16 +89,9 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
                 Ver más
               </button>
             </div>
-
-            {/* Stock indicator */}
-            {product.stock === 0 && (
-              <div className="mt-2 rounded bg-red-50 px-2 py-1 text-center">
-                <span className="text-xs font-semibold text-red-600">Agotado</span>
-              </div>
-            )}
           </div>
         </div>
       ))}
-    </div>
-  )
+    </>
+  );
 }

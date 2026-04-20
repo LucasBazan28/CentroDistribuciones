@@ -4,6 +4,9 @@ import { Archivo_Black, Archivo } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ToastContainer from "./components/Toast";
+import { CartProvider } from "./lib/cartContext";
+import { ToastProvider } from "./lib/toastProvider";
 
 const archivoBlack = Archivo_Black({
   weight: "400",
@@ -32,9 +35,14 @@ export default function RootLayout({
       <body
         className={`${archivoBlack.variable} ${archivo.variable} antialiased`}
       >
-        <Header />
-        {children}
-        <Footer />
+        <ToastProvider>
+          <CartProvider>
+            <Header />
+            {children}
+            <Footer />
+            <ToastContainer />
+          </CartProvider>
+        </ToastProvider>
       </body>
     </html>
   );

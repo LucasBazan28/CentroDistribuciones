@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 import { logoutUser } from "@/lib/auth";
+import { useCart } from "@/app/lib/cartContext";
+import CartDrawer from "./CartDrawer";
 import {
   Phone,
   Mail,
@@ -25,7 +27,9 @@ const navLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { state: cartState } = useCart();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -116,13 +120,16 @@ export default function Header() {
               <Search size={20} />
             </button>
             <button
+              onClick={() => setCartOpen(!cartOpen)}
               className="relative rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
               aria-label="Carrito"
             >
               <ShoppingCart size={20} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
-                0
-              </span>
+              {cartState.items.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
+                  {cartState.items.length}
+                </span>
+              )}
             </button>
             {isLoggedIn ? (
               <button
@@ -238,6 +245,7 @@ export default function Header() {
           </div>
         )}
       </nav>
+      {cartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
     </header>
   );
 }
