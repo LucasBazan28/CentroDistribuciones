@@ -1,17 +1,7 @@
 "use client"
 
 import { Eye, ShoppingCart } from "lucide-react"
-
-interface Product {
-  id: number
-  referencia: string
-  descripcion: string
-  precio_unitario: number
-  stock: number
-  categorias?: { nombre: string } | null
-  marcas?: { nombre: string } | null
-  grupo_descuento?: { nombre: string; descuento: number } | null
-}
+import { Product } from "@/app/lib/types"
 
 interface ProductGridProps {
   products: Product[]
@@ -107,7 +97,7 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
               {product.referencia} - {product.descripcion}
             </h3>
 
-            {/* Brand and Discount Info */}
+            {/* Brand Info */}
             {product.marcas && (
               <p className="mt-1 text-xs text-gray-500">
                 {product.marcas.nombre}
@@ -115,16 +105,9 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
             )}
 
             <div className="mt-3 flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-gray-900">
-                  {formatPrice(product.precio_unitario)}
-                </span>
-                {product.grupo_descuento?.descuento && (
-                  <span className="text-xs text-green-600 font-semibold">
-                    Descuento: {product.grupo_descuento.descuento}%
-                  </span>
-                )}
-              </div>
+              <span className="text-lg font-bold text-gray-900">
+                {formatPrice(product.precio_venta)}
+              </span>
               <button className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                 Ver más
               </button>

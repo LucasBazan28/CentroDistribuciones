@@ -1,13 +1,6 @@
 import { ShoppingCart, Eye } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
-
-interface Articulo {
-  id: number;
-  referencia: string;
-  descripcion: string;
-  precio_unitario: number;
-  categorias?: { nombre: string } | null;
-}
+import { Product } from "@/app/lib/types";
 
 const gradients = [
   "bg-gradient-to-br from-blue-100 to-blue-200",
@@ -32,7 +25,7 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-async function fetchFeaturedProducts(): Promise<Articulo[]> {
+async function fetchFeaturedProducts(): Promise<Product[]> {
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -118,7 +111,7 @@ export default async function FeaturedProducts() {
                   </h3>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-lg font-bold text-gray-900">
-                      {formatPrice(product.precio_unitario)}
+                      {formatPrice(product.precio_venta)}
                     </span>
                     <button className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                       Ver más

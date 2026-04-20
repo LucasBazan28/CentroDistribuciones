@@ -7,29 +7,7 @@ import FilterPanel, { FilterState } from "@/app/components/FilterPanel"
 import ProductGrid from "@/app/components/ProductGrid"
 import { ChevronUp } from "lucide-react"
 import { fetchAllProducts, extractFilters } from "@/app/lib/productHelpers"
-
-interface Product {
-  id: number
-  referencia: string
-  descripcion: string
-  precio_unitario: number
-  stock: number
-  categoria_id: number | null
-  marca_id: number | null
-  categorias?: { nombre: string } | null
-  marcas?: { nombre: string } | null
-  grupo_descuento?: { nombre: string; descuento: number } | null
-}
-
-interface Category {
-  id: number
-  nombre: string
-}
-
-interface Brand {
-  id: number
-  nombre: string
-}
+import { Product, Category, Brand } from "@/app/lib/types"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -62,18 +40,35 @@ export default function ProductsPage() {
         setBrands(brands)
       })
 
-      // After all products are loaded, apply URL brand filter if present
+      // After all products are loaded, apply URL filters if present
       const brandParam = searchParams.get("brand")
-      if (brandParam && products.length > 0) {
-        const { brands: extractedBrands } = extractFilters(products)
-        const matchingBrand = extractedBrands.find(
-          (b) => b.nombre.toLowerCase() === brandParam.toLowerCase()
-        )
-        if (matchingBrand) {
-          setFilters((prev) => ({
-            ...prev,
-            brand: matchingBrand.id.toString(),
-          }))
+      const categoryParam = searchParams.get("category")
+
+      if (products.length > 0) {
+        const { brands: extractedBrands, categories: extractedCategories } = extractFilters(products)
+
+        if (brandParam) {
+          const matchingBrand = extractedBrands.find(
+            (b) => b.nombre.toLowerCase() === brandParam.toLowerCase()
+          )
+          if (matchingBrand) {
+            setFilters((prev) => ({
+              ...prev,
+              brand: matchingBrand.id.toString(),
+            }))
+          }
+        }
+
+        if (categoryParam) {
+          const matchingCategory = extractedCategories.find(
+            (c) => c.nombre.toLowerCase() === categoryParam.toLowerCase()
+          )
+          if (matchingCategory) {
+            setFilters((prev) => ({
+              ...prev,
+              category: matchingCategory.id.toString(),
+            }))
+          }
         }
       }
 
@@ -110,11 +105,11 @@ export default function ProductsPage() {
       }
 
       // Price filters
-      if (filters.minPrice && product.precio_unitario < parseInt(filters.minPrice)) {
+      if (filters.minPrice && product.precio_venta < parseInt(filters.minPrice)) {
         return false
       }
 
-      if (filters.maxPrice && product.precio_unitario > parseInt(filters.maxPrice)) {
+      if (filters.maxPrice && product.precio_venta > parseInt(filters.maxPrice)) {
         return false
       }
 

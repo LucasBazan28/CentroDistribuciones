@@ -159,7 +159,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("articulos")
-      .select("id, referencia, descripcion, precio_unitario, stock, categoria_id, marca_id, grupo_descuento_id, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)", { count: "exact" })
+      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)", { count: "exact" })
       .eq("activo", true)
 
     // Apply filters
@@ -172,11 +172,11 @@ export async function GET(request: Request) {
     }
 
     if (minPrice !== null) {
-      query = query.gte("precio_unitario", minPrice)
+      query = query.gte("precio_venta", minPrice)
     }
 
     if (maxPrice !== null) {
-      query = query.lte("precio_unitario", maxPrice)
+      query = query.lte("precio_venta", maxPrice)
     }
 
     // Apply search filter - must be done client-side as Supabase text search needs full-text index
