@@ -3,6 +3,7 @@
 import { Eye, ShoppingCart } from "lucide-react";
 import { Product } from "@/app/lib/types";
 import { useCart } from "@/app/lib/cartContext";
+import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useToast } from "@/app/lib/toastProvider";
 
 const gradients = [
@@ -20,20 +21,13 @@ function getGradientForProduct(id: number): string {
   return gradients[id % gradients.length];
 }
 
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price);
-}
-
 interface FeaturedProductsListProps {
   products: Product[];
 }
 
 export default function FeaturedProductsList({ products }: FeaturedProductsListProps) {
   const { addItem } = useCart();
+  const { formatPriceARS } = useExchangeRate();
   const { addToast } = useToast();
 
   const handleAddToCart = (product: Product) => {
@@ -81,11 +75,11 @@ export default function FeaturedProductsList({ products }: FeaturedProductsListP
             <h3 className="mt-1.5 text-sm font-semibold leading-snug text-gray-800 line-clamp-2">
               {product.referencia} - {product.descripcion}
             </h3>
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex flex-col gap-2">
               <span className="text-lg font-bold text-gray-900">
-                {formatPrice(product.precio_venta)}
+                {formatPriceARS(product.precio_venta)}
               </span>
-              <button className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
+              <button className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                 Ver más
               </button>
             </div>

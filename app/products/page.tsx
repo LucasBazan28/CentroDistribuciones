@@ -5,12 +5,14 @@ import { useSearchParams } from "next/navigation"
 import SearchBar from "@/app/components/SearchBar"
 import FilterPanel, { FilterState } from "@/app/components/FilterPanel"
 import ProductGrid from "@/app/components/ProductGrid"
+import { useExchangeRate } from "@/app/lib/exchangeRateContext"
 import { ChevronUp } from "lucide-react"
 import { fetchAllProducts, extractFilters } from "@/app/lib/productHelpers"
 import { Product, Category, Brand } from "@/app/lib/types"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
+  const { convertToARS } = useExchangeRate()
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoadingAll, setIsLoadingAll] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
@@ -21,6 +23,7 @@ export default function ProductsPage() {
     brand: null,
     minPrice: "",
     maxPrice: "",
+    currency: "USD",
   })
   const [currentPage, setCurrentPage] = useState(0)
   const [showScrollTop, setShowScrollTop] = useState(false)
@@ -105,11 +108,15 @@ export default function ProductsPage() {
       }
 
       // Price filters
-      if (filters.minPrice && product.precio_venta < parseInt(filters.minPrice)) {
+      const priceToCompare = filters.currency === "ARS"
+        ? convertToARS(product.precio_venta)
+        : product.precio_venta
+
+      if (filters.minPrice && priceToCompare < parseInt(filters.minPrice)) {
         return false
       }
 
-      if (filters.maxPrice && product.precio_venta > parseInt(filters.maxPrice)) {
+      if (filters.maxPrice && priceToCompare > parseInt(filters.maxPrice)) {
         return false
       }
 
@@ -151,6 +158,7 @@ export default function ProductsPage() {
       brand: null,
       minPrice: "",
       maxPrice: "",
+      currency: "USD",
     })
     setSearchTerm("")
     setCurrentPage(0)
@@ -166,6 +174,17 @@ export default function ProductsPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      {/* Sticky Search Section */}
+      <div className="sticky top-0 z-40 bg-white shadow-md">
+        <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+          <SearchBar
+            onSearch={setSearchTerm}
+            placeholder="Buscar referencia, marca o descripción... Ej: Schneider A9F74210"
+            compact={true}
+          />
+        </div>
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -181,13 +200,7 @@ export default function ProductsPage() {
             </p>
           )}
         </div>
-
-        {/* Search Bar - Full Width */}
-        <SearchBar
-          onSearch={setSearchTerm}
-          placeholder="Buscar por referencia, descripción o marca..."
-        />
-
+ñ
         {/* Main Layout - Filters and Products */}
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar - Filters */}

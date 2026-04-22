@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/app/lib/cartContext";
+import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -10,14 +11,18 @@ export default function CartPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state: cartState, removeItem, updateQuantity, clearCart } = useCart();
+  const { formatPriceARS, convertToARS } = useExchangeRate();
   const [showQuoteForm, setShowQuoteForm] = useState(searchParams.get("quote") === "true");
 
-  const subtotal = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotal = convertToARS(subtotalUSD);
+  const iva = subtotal * 0.21;
+  const total = subtotal + iva;
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("es-CO", {
+    return new Intl.NumberFormat("es-AR", {
       style: "currency",
-      currency: "COP",
+      currency: "ARS",
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -139,7 +144,15 @@ export default function CartPageContent() {
                   <span className="text-gray-600">Subtotal:</span>
                   <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
                 </div>
-                <p className="text-xs text-gray-500">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">IVA (21%):</span>
+                  <span className="font-semibold text-gray-900">{formatPrice(iva)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <span className="font-bold text-gray-900">Total:</span>
+                  <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">
                   {cartState.items.length} {cartState.items.length === 1 ? "producto" : "productos"}
                 </p>
               </div>

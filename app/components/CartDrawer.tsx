@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/app/lib/cartContext";
+import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 
@@ -11,13 +12,17 @@ interface CartDrawerProps {
 export default function CartDrawer({ onClose }: CartDrawerProps) {
   const router = useRouter();
   const { state: cartState, removeItem, updateQuantity } = useCart();
+  const { formatPriceARS, convertToARS } = useExchangeRate();
 
-  const subtotal = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotal = convertToARS(subtotalUSD);
+  const iva = subtotal * 0.21;
+  const total = subtotal + iva;
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("es-CO", {
+    return new Intl.NumberFormat("es-AR", {
       style: "currency",
-      currency: "COP",
+      currency: "ARS",
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -128,6 +133,16 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Subtotal:</span>
               <span className="text-lg font-bold text-gray-900">{formatPrice(subtotal)}</span>
+            </div>
+            {/* IVA */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">IVA (21%):</span>
+              <span className="text-lg font-bold text-gray-900">{formatPrice(iva)}</span>
+            </div>
+            {/* Total */}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+              <span className="font-bold text-gray-900">Total:</span>
+              <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
             </div>
 
             {/* Buttons */}

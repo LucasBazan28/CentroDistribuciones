@@ -18,14 +18,6 @@ function getGradientForProduct(id: number): string {
   return gradients[id % gradients.length];
 }
 
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price);
-}
-
 async function fetchFeaturedProducts(): Promise<Product[]> {
   try {
     const supabase = await createSupabaseServerClient();

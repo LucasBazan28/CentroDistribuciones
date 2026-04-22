@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CartItem } from "@/app/lib/cartContext";
+import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useToast } from "@/app/lib/toastProvider";
 import { Loader } from "lucide-react";
 
@@ -13,6 +14,7 @@ interface QuoteRequestFormProps {
 
 export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: QuoteRequestFormProps) {
   const { addToast } = useToast();
+  const { convertToARS } = useExchangeRate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
@@ -57,12 +59,13 @@ export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: Quot
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotalUSD = cartItems.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
+  const subtotal = convertToARS(subtotalUSD);
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("es-CO", {
+    return new Intl.NumberFormat("es-AR", {
       style: "currency",
-      currency: "COP",
+      currency: "ARS",
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -81,7 +84,7 @@ export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: Quot
                 {item.referencia} x {item.quantity}
               </span>
               <span className="text-gray-900 font-medium">
-                {formatPrice(item.precio_venta * item.quantity)}
+                {formatPrice(convertToARS(item.precio_venta * item.quantity))}
               </span>
             </div>
           ))}

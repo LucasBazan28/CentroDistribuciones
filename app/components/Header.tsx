@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 import { logoutUser } from "@/lib/auth";
 import { useCart } from "@/app/lib/cartContext";
+import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import CartDrawer from "./CartDrawer";
 import {
   Phone,
@@ -26,10 +28,15 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const isProductsPage = pathname.startsWith("/products");
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { state: cartState } = useCart();
+  const { dollarRate } = useExchangeRate();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -49,76 +56,85 @@ export default function Header() {
     setMenuOpen(false);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full shadow-md">
-      {/* Top info bar */}
-      <div className="bg-primary-dark text-white text-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
-          <div className="hidden items-center gap-6 sm:flex">
-            <a
-              href="tel:5492916431275"
-              className="flex items-center gap-1.5 hover:text-accent transition-colors"
-            >
-              <Phone size={14} />
-              +54-9-291-643-1275
-            </a>
-            <a href="tel:5492915051422" className="flex items-center gap-2">
-                <Phone size={14} /> +54-9-291-505-1422
-            </a>
-            <a
-              href="mailto:ventas@centrodistribuciones.com.ar"
-              className="flex items-center gap-1.5 hover:text-accent transition-colors"
-            >
-              <Mail size={14} />
-              ventas@centrodistribuciones.com.ar
-            </a>
-          </div>
-          <div className="mx-auto flex items-center gap-2 text-xs sm:mx-0 sm:text-sm">
-            <span>Envíos a todo el país</span>
-            <span className="text-primary-light">|</span>
-            <span>Distribuidor oficial de marcas líderes</span>
-            <span className="text-primary-light">|</span>
-            <span>Asesoramiento técnico especializado</span>
+      {/* Top info bar - Hidden on products page */}
+      {!isProductsPage && (
+        <div className="bg-primary-dark text-white text-sm">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
+            <div className="hidden items-center gap-6 sm:flex">
+              <a
+                href="tel:5492916431275"
+                className="flex items-center gap-1.5 hover:text-accent transition-colors"
+              >
+                <Phone size={14} />
+                +54-9-291-643-1275
+              </a>
+              <a href="tel:5492915051422" className="flex items-center gap-2">
+                  <Phone size={14} /> +54-9-291-505-1422
+              </a>
+              <a
+                href="mailto:ventas@centrodistribuciones.com.ar"
+                className="flex items-center gap-1.5 hover:text-accent transition-colors"
+              >
+                <Mail size={14} />
+                ventas@centrodistribuciones.com.ar
+              </a>
+            </div>
+            <div className="mx-auto flex items-center gap-2 text-xs sm:mx-0 sm:text-sm">
+              <span>Envíos a todo el país</span>
+              <span className="text-primary-light">|</span>
+              <span>Distribuidor oficial de marcas líderes</span>
+              <span className="text-primary-light">|</span>
+              <span>Asesoramiento técnico especializado</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Main navigation */}
-      <nav className="bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          {/* Logo */}
+      {/* Second section - Logo and main actions */}
+      <nav className={`bg-white border-b border-gray-200 ${isProductsPage ? "py-2" : "py-4"}`}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
+          {/* Logo - Smaller on products page */}
           <a href="/" className="flex items-center gap-2">
-            <Image 
-              src="/logos/LOGO-CENTRO-DISTRI-CD-CenDist.jpeg" 
-              alt="Centro Distribuciones" 
-              width={150} 
-              height={49}
+            <Image
+              src="/logos/LOGO-CENTRO-DISTRI-CD-CenDist.jpeg"
+              alt="Centro Distribuciones"
+              width={isProductsPage ? 100 : 150}
+              height={isProductsPage ? 33 : 49}
               className="object-contain"
             />
           </a>
 
-          {/* Desktop nav */}
-          <ul className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => (
-              <li key={link.label}>
-                <a
-                  href={link.href}
-                  className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-primary/10 hover:text-primary"
+          {/* Desktop actions - Search, Cart, Login, Quote */}
+          <div className="hidden items-center gap-4 lg:flex">
+            {/* Searchbar - Hidden on products page */}
+            {!isProductsPage && (
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="rounded-full bg-gray-100 px-4 py-2 pl-10 text-sm text-gray-700 transition-colors placeholder-gray-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button
+                  type="submit"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 transition-colors hover:text-primary"
+                  aria-label="Buscar"
                 >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          {/* Desktop actions */}
-          <div className="hidden items-center gap-3 lg:flex">
-            <button
-              className="rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
-              aria-label="Buscar"
-            >
-              <Search size={20} />
-            </button>
+                  <Search size={18} />
+                </button>
+              </form>
+            )}
             <button
               onClick={() => setCartOpen(!cartOpen)}
               className="relative rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
@@ -140,29 +156,22 @@ export default function Header() {
                 Salir
               </button>
             ) : (
-              <div className="flex items-center gap-1 text-sm font-semibold">
-                <a
-                  href="/login"
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
-                >
-                  <UserCircle size={18} />
-                  Iniciar Sesión
-                </a>
-                <span className="text-gray-300">|</span>
-                <a
-                  href="/register"
-                  className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-primary/10"
-                >
-                  Registrarse
-                </a>
-              </div>
+              <a
+                href="/login"
+                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-primary font-semibold transition-colors hover:bg-primary/10"
+              >
+                <UserCircle size={18} />
+                Iniciar Sesión
+              </a>
             )}
-            <a
-              href="#contacto"
-              className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-            >
-              Pedir Presupuesto
-            </a>
+            {!isProductsPage && (
+              <a
+                href="#contacto"
+                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+              >
+                Pedir Presupuesto
+              </a>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -174,52 +183,74 @@ export default function Header() {
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+      </nav>
 
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="border-t border-gray-100 bg-white px-4 pb-4 lg:hidden">
-            <ul className="flex flex-col gap-1 pt-2">
+      {/* Third section - Categories and dollar rate - Hidden on products page */}
+      {!isProductsPage && (
+        <nav className="bg-gray-50 border-b border-gray-200">
+          <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-3">
+            {/* Desktop categories - centered */}
+            <ul className="hidden items-center gap-1 lg:flex">
               {navLinks.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="block rounded-md px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-primary/10 hover:text-primary"
-                    onClick={() => setMenuOpen(false)}
+                    className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-primary/10 hover:text-primary"
                   >
                     {link.label}
                   </a>
                 </li>
               ))}
             </ul>
-            <div className="mt-3 flex flex-col items-center gap-3 border-t border-gray-100 pt-3">
-              {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-500 px-5 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
-                >
-                  <LogOut size={18} />
-                  Salir
-                </button>
-              ) : (
-                <div className="flex w-full items-center justify-center gap-1 text-sm font-semibold">
-                  <a
-                    href="/login"
-                    className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-primary transition-colors hover:bg-primary/10"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <UserCircle size={18} />
-                    Iniciar Sesión
-                  </a>
-                  <span className="text-gray-300">|</span>
-                  <a
-                    href="/register"
-                    className="rounded-lg px-4 py-2.5 text-primary transition-colors hover:bg-primary/10"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Registrarse
-                  </a>
-                </div>
+
+            {/* Dollar rate - positioned at right */}
+            <div className="absolute right-4">
+              {dollarRate && (
+                <span className="text-sm font-semibold text-gray-700">
+                  Dólar: ${dollarRate.toFixed(2)}
+                </span>
               )}
+            </div>
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="bg-white border-t border-gray-200 px-4 pb-4 lg:hidden">
+          <ul className="flex flex-col gap-1 pt-2">
+            {navLinks.map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.href}
+                  className="block rounded-md px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-primary/10 hover:text-primary"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-col items-center gap-3 border-t border-gray-100 pt-3">
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-500 px-5 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+              >
+                <LogOut size={18} />
+                Salir
+              </button>
+            ) : (
+              <a
+                href="/login"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg px-5 py-2.5 text-primary font-semibold transition-colors hover:bg-primary/10"
+                onClick={() => setMenuOpen(false)}
+              >
+                <UserCircle size={18} />
+                Iniciar Sesión
+              </a>
+            )}
+            {!isProductsPage && (
               <a
                 href="#contacto"
                 className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
@@ -227,7 +258,14 @@ export default function Header() {
               >
                 Pedir Presupuesto
               </a>
-            </div>
+            )}
+            {dollarRate && (
+              <span className="text-sm font-semibold text-gray-700">
+                Dólar: ${dollarRate.toFixed(2)}
+              </span>
+            )}
+          </div>
+          {!isProductsPage && (
             <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500">
               <a href="tel:5492916431275" className="flex items-center gap-2">
                 <Phone size={14} /> +54-9-291-643-1275
@@ -242,9 +280,9 @@ export default function Header() {
                 Encontranos en Donado 587, Bahía Blanca, Buenos Aires
               </a>
             </div>
-          </div>
-        )}
-      </nav>
+          )}
+        </div>
+      )}
       {cartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
     </header>
   );

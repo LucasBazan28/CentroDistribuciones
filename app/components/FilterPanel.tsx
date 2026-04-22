@@ -8,6 +8,7 @@ export interface FilterState {
   brand: string | null
   minPrice: string
   maxPrice: string
+  currency: "USD" | "ARS"
 }
 
 interface FilterPanelProps {
@@ -59,7 +60,16 @@ export default function FilterPanel({
     })
   }
 
-  const hasActiveFilters = filters.category || filters.brand || filters.minPrice || filters.maxPrice
+  const handleCurrencyChange = (currency: "USD" | "ARS") => {
+    onFilterChange({
+      ...filters,
+      currency,
+      minPrice: "",
+      maxPrice: "",
+    })
+  }
+
+  const hasActiveFilters = filters.category || filters.brand || filters.minPrice || filters.maxPrice || filters.currency !== "USD"
 
   return (
     <div className="h-fit rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -176,6 +186,32 @@ export default function FilterPanel({
         </button>
         {expandedSections.price && (
           <div className="mt-4 space-y-3">
+            {/* Currency selector */}
+            <div className="mb-4 pb-3 border-b border-gray-100">
+              <label className="text-xs font-semibold text-gray-700 block mb-2">Moneda</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleCurrencyChange("USD")}
+                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                    filters.currency === "USD"
+                      ? "bg-primary text-white"
+                      : "border border-gray-200 text-gray-700 hover:border-primary"
+                  }`}
+                >
+                  USD
+                </button>
+                <button
+                  onClick={() => handleCurrencyChange("ARS")}
+                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                    filters.currency === "ARS"
+                      ? "bg-primary text-white"
+                      : "border border-gray-200 text-gray-700 hover:border-primary"
+                  }`}
+                >
+                  ARS
+                </button>
+              </div>
+            </div>
             <div>
               <label className="text-xs font-semibold text-gray-700">Mínimo</label>
               <input

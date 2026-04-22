@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import ToastContainer from "./components/Toast";
 import { CartProvider } from "./lib/cartContext";
 import { ToastProvider } from "./lib/toastProvider";
+import { ExchangeRateProvider } from "./lib/exchangeRateContext";
 
 const archivoBlack = Archivo_Black({
   weight: "400",
@@ -36,12 +37,14 @@ export default function RootLayout({
         className={`${archivoBlack.variable} ${archivo.variable} antialiased`}
       >
         <ToastProvider>
-          <CartProvider>
-            <Header />
-            {children}
-            <Footer />
-            <ToastContainer />
-          </CartProvider>
+          <ExchangeRateProvider>
+            <CartProvider>
+              <Header />
+              {children}
+              <Footer />
+              <ToastContainer />
+            </CartProvider>
+          </ExchangeRateProvider>
         </ToastProvider>
       </body>
     </html>
