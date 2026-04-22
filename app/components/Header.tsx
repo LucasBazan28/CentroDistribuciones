@@ -168,7 +168,7 @@ export default function Header() {
               )}
               {!isProductsPage && (
                 <a
-                  href="#contacto"
+                  href="/cart?quote=true"
                   className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
                 >
                   Pedir Presupuesto
@@ -255,7 +255,7 @@ export default function Header() {
             )}
             {!isProductsPage && (
               <a
-                href="#contacto"
+                href="/cart?quote=true"
                 className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
                 onClick={() => setMenuOpen(false)}
               >

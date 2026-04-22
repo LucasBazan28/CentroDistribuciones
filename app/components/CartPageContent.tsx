@@ -4,7 +4,7 @@ import { useCart } from "@/app/lib/cartContext";
 import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import QuoteRequestForm from "@/app/components/QuoteRequestForm";
 
 export default function CartPageContent() {
@@ -13,6 +13,16 @@ export default function CartPageContent() {
   const { state: cartState, removeItem, updateQuantity, clearCart } = useCart();
   const { formatPriceARS, convertToARS } = useExchangeRate();
   const [showQuoteForm, setShowQuoteForm] = useState(searchParams.get("quote") === "true");
+  const quoteFormRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to quote form when it becomes visible
+  useEffect(() => {
+    if (showQuoteForm && quoteFormRef.current) {
+      setTimeout(() => {
+        quoteFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [showQuoteForm]);
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
   const subtotal = convertToARS(subtotalUSD);
@@ -135,55 +145,62 @@ export default function CartPageContent() {
           </div>
 
           {/* Sidebar */}
-          {cartState.items.length > 0 && !showQuoteForm && (
-            <div className="h-fit rounded-lg border border-gray-200 bg-white p-6 sticky top-24">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Resumen</h2>
+          {cartState.items.length > 0 && (
+            <div className={`rounded-lg border border-gray-200 bg-white p-6 sticky top-24 ${showQuoteForm ? "" : "h-fit"}`}>
+              {!showQuoteForm ? (
+                <>
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Resumen</h2>
 
-              <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
+                  <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">IVA (21%):</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(iva)}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                      <span className="font-bold text-gray-900">Total:</span>
+                      <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-4">
+                      {cartState.items.length} {cartState.items.length === 1 ? "producto" : "productos"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowQuoteForm(true)}
+                    className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark mb-3"
+                  >
+                    Solicitar Presupuesto
+                  </button>
+
+                  <button
+                    onClick={() => router.push("/products")}
+                    className="w-full rounded-lg border border-primary px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    Seguir comprando
+                  </button>
+                </>
+              ) : (
+                <div ref={quoteFormRef}>
+                  <button
+                    onClick={() => setShowQuoteForm(false)}
+                    className="mb-4 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                  >
+                    ← Volver al resumen
+                  </button>
+                  <QuoteRequestForm
+                    cartItems={cartState.items}
+                    onClose={() => setShowQuoteForm(false)}
+                    onSuccess={() => {
+                      clearCart();
+                      setShowQuoteForm(false);
+                    }}
+                  />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">IVA (21%):</span>
-                  <span className="font-semibold text-gray-900">{formatPrice(iva)}</span>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <span className="font-bold text-gray-900">Total:</span>
-                  <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-4">
-                  {cartState.items.length} {cartState.items.length === 1 ? "producto" : "productos"}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setShowQuoteForm(true)}
-                className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark mb-3"
-              >
-                Solicitar Presupuesto
-              </button>
-
-              <button
-                onClick={() => router.push("/products")}
-                className="w-full rounded-lg border border-primary px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-              >
-                Seguir comprando
-              </button>
-            </div>
-          )}
-
-          {/* Quote form */}
-          {showQuoteForm && (
-            <div className="lg:col-span-2 lg:col-start-2">
-              <QuoteRequestForm
-                cartItems={cartState.items}
-                onClose={() => setShowQuoteForm(false)}
-                onSuccess={() => {
-                  clearCart();
-                  setShowQuoteForm(false);
-                }}
-              />
+              )}
             </div>
           )}
         </div>
