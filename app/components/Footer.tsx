@@ -94,11 +94,16 @@ export default function Footer() {
                   size={18}
                   className="mt-0.5 shrink-0 text-primary-light"
                 />
-                <span className="text-sm text-gray-400">
+                <a
+                  href="https://www.google.com/maps/place/Centro+Distribuciones+-+ZOLODA+WEG+LCT+SCAME+WTK+CORTEM+GROUP/@-38.6957312,-62.2362624,13z/data=!4m6!3m5!1s0x95edbd92188900d3:0x6e05b12f9cb8361b!8m2!3d-38.7259148!4d-62.2716594!16s%2Fg%2F11jy1r28dk?entry=ttu&g_ep=EgoyMDI2MDQyMC4wIKXMDSoASAFQAw%3D%3D"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-400 hover:text-accent transition-colors"
+                >
                   Donado 587, Bahía Blanca,
                   <br />
                   Buenos Aires, Argentina
-                </span>
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="shrink-0 text-primary-light" />
