@@ -102,29 +102,29 @@ export default function Header() {
 
       {/* Second section - Logo and main actions */}
       <nav className={`bg-white border-b border-gray-200 ${isProductsPage ? "py-2" : "py-4"}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4">
           {/* Logo - Smaller on products page */}
-          <a href="/" className="flex items-center gap-2">
+          <a href="/" className="flex shrink-0 items-center gap-2">
             <Image
               src="/logos/LOGO-CENTRO-DISTRI-CD-CenDist.jpeg"
               alt="Centro Distribuciones"
-              width={isProductsPage ? 100 : 150}
-              height={isProductsPage ? 33 : 49}
+              width={isProductsPage ? 100 : 140}
+              height={isProductsPage ? 33 : 45}
               className="object-contain"
             />
           </a>
 
           {/* Desktop actions - Search, Cart, Login, Quote */}
-          <div className="hidden items-center gap-4 lg:flex">
+          <div className="hidden items-center gap-3 lg:flex flex-1">
             {/* Searchbar - Hidden on products page */}
             {!isProductsPage && (
-              <form onSubmit={handleSearch} className="relative">
+              <form onSubmit={handleSearch} className="relative flex-1">
                 <input
                   type="text"
                   placeholder="Buscar productos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-full bg-gray-100 px-4 py-2 pl-10 text-sm text-gray-700 transition-colors placeholder-gray-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-full bg-gray-100 px-4 py-2 pl-10 text-sm text-gray-700 transition-colors placeholder-gray-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button
                   type="submit"
@@ -135,43 +135,46 @@ export default function Header() {
                 </button>
               </form>
             )}
-            <button
-              onClick={() => setCartOpen(!cartOpen)}
-              className="relative rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
-              aria-label="Carrito"
-            >
-              <ShoppingCart size={20} />
-              {cartState.items.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
-                  {cartState.items.length}
-                </span>
-              )}
-            </button>
-            {isLoggedIn ? (
+
+            <div className="flex items-center gap-3 shrink-0">
               <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                onClick={() => setCartOpen(!cartOpen)}
+                className="relative rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
+                aria-label="Carrito"
               >
-                <LogOut size={18} />
-                Salir
+                <ShoppingCart size={20} />
+                {cartState.items.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
+                    {cartState.items.length}
+                  </span>
+                )}
               </button>
-            ) : (
-              <a
-                href="/login"
-                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-primary font-semibold transition-colors hover:bg-primary/10"
-              >
-                <UserCircle size={18} />
-                Iniciar Sesión
-              </a>
-            )}
-            {!isProductsPage && (
-              <a
-                href="#contacto"
-                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-              >
-                Pedir Presupuesto
-              </a>
-            )}
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                >
+                  <LogOut size={18} />
+                  Salir
+                </button>
+              ) : (
+                <a
+                  href="/login"
+                  className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-primary font-semibold transition-colors hover:bg-primary/10"
+                >
+                  <UserCircle size={18} />
+                  Iniciar Sesión
+                </a>
+              )}
+              {!isProductsPage && (
+                <a
+                  href="#contacto"
+                  className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+                >
+                  Pedir Presupuesto
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Mobile hamburger */}
