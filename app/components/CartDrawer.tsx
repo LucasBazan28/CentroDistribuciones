@@ -12,19 +12,27 @@ interface CartDrawerProps {
 export default function CartDrawer({ onClose }: CartDrawerProps) {
   const router = useRouter();
   const { state: cartState, removeItem, updateQuantity } = useCart();
-  const { formatPriceARS, convertToARS } = useExchangeRate();
+  const { formatPrice, convertCurrency, currency } = useExchangeRate();
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
-  const subtotal = convertToARS(subtotalUSD);
+  const subtotal = convertCurrency(subtotalUSD);
   const iva = subtotal * 0.21;
   const total = subtotal + iva;
 
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-    }).format(price);
+  const formatPriceCart = (price: number): string => {
+    if (currency === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(price);
+    } else {
+      return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 0,
+      }).format(price);
+    }
   };
 
   const handleNavigateToCart = () => {
@@ -82,7 +90,7 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
                     </h3>
                     <p className="text-xs text-gray-500 line-clamp-2">{item.descripcion}</p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
-                      {formatPrice(item.precio_venta)}
+                      {formatPriceCart(item.precio_venta)}
                     </p>
                   </div>
 
@@ -132,17 +140,17 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
             {/* Subtotal */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Subtotal:</span>
-              <span className="text-lg font-bold text-gray-900">{formatPrice(subtotal)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPriceCart(subtotal)}</span>
             </div>
             {/* IVA */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">IVA (21%):</span>
-              <span className="text-lg font-bold text-gray-900">{formatPrice(iva)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPriceCart(iva)}</span>
             </div>
             {/* Total */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-200">
               <span className="font-bold text-gray-900">Total:</span>
-              <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
+              <span className="font-bold text-lg text-primary">{formatPriceCart(total)}</span>
             </div>
 
             {/* Buttons */}

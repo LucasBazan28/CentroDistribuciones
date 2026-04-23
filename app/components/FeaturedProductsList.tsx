@@ -27,7 +27,7 @@ interface FeaturedProductsListProps {
 
 export default function FeaturedProductsList({ products }: FeaturedProductsListProps) {
   const { addItem } = useCart();
-  const { formatPriceARS } = useExchangeRate();
+  const { formatPrice } = useExchangeRate();
   const { addToast } = useToast();
 
   const handleAddToCart = (product: Product) => {
@@ -77,7 +77,7 @@ export default function FeaturedProductsList({ products }: FeaturedProductsListP
             </h3>
             <div className="mt-3 flex flex-col gap-2">
               <span className="text-lg font-bold text-gray-900">
-                {formatPriceARS(product.precio_venta)}
+                {formatPrice(product.precio_venta)}
               </span>
               <button className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                 Ver más

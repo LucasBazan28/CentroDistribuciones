@@ -11,7 +11,7 @@ export default function CartPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state: cartState, removeItem, updateQuantity, clearCart } = useCart();
-  const { formatPriceARS, convertToARS } = useExchangeRate();
+  const { convertCurrency, currency } = useExchangeRate();
   const [showQuoteForm, setShowQuoteForm] = useState(searchParams.get("quote") === "true");
   const quoteFormRef = useRef<HTMLDivElement>(null);
 
@@ -25,16 +25,24 @@ export default function CartPageContent() {
   }, [showQuoteForm]);
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
-  const subtotal = convertToARS(subtotalUSD);
+  const subtotal = convertCurrency(subtotalUSD);
   const iva = subtotal * 0.21;
   const total = subtotal + iva;
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-    }).format(price);
+    if (currency === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(price);
+    } else {
+      return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 0,
+      }).format(price);
+    }
   };
 
   return (

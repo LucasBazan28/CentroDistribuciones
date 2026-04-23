@@ -2,12 +2,18 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+type Currency = "USD" | "ARS";
+
 interface ExchangeRateContextType {
   dollarRate: number | null;
   loading: boolean;
   error: string | null;
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
   convertToARS: (usdAmount: number) => number;
   formatPriceARS: (usdAmount: number) => string;
+  formatPrice: (usdAmount: number) => string;
+  convertCurrency: (usdAmount: number) => number;
 }
 
 const ExchangeRateContext = createContext<ExchangeRateContextType | undefined>(undefined);
@@ -16,6 +22,17 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
   const [dollarRate, setDollarRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>("ARS");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Sincronizar currency desde localStorage solo después de montar en cliente
+    const savedCurrency = localStorage.getItem("selectedCurrency") as Currency | null;
+    if (savedCurrency && (savedCurrency === "USD" || savedCurrency === "ARS")) {
+      setCurrency(savedCurrency);
+    }
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchDollarRate = async () => {
@@ -44,6 +61,10 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
     return usdAmount * dollarRate;
   };
 
+  const convertCurrency = (usdAmount: number): number => {
+    return currency === "ARS" ? convertToARS(usdAmount) : usdAmount;
+  };
+
   const formatPriceARS = (usdAmount: number): string => {
     const arsAmount = convertToARS(usdAmount);
     const formatted = new Intl.NumberFormat("es-AR", {
@@ -55,8 +76,20 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
     return formatted.replace(/^ARS\s/, "AR$ ");
   };
 
+  const formatPrice = (usdAmount: number): string => {
+    if (currency === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(usdAmount);
+    } else {
+      return formatPriceARS(usdAmount);
+    }
+  };
+
   return (
-    <ExchangeRateContext.Provider value={{ dollarRate, loading, error, convertToARS, formatPriceARS }}>
+    <ExchangeRateContext.Provider value={{ dollarRate, loading, error, currency, setCurrency, convertToARS, formatPriceARS, formatPrice, convertCurrency }}>
       {children}
     </ExchangeRateContext.Provider>
   );

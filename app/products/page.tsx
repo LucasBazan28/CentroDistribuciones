@@ -200,7 +200,6 @@ export default function ProductsPage() {
             </p>
           )}
         </div>
-ñ
         {/* Main Layout - Filters and Products */}
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar - Filters */}

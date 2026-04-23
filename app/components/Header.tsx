@@ -8,16 +8,8 @@ import { logoutUser } from "@/lib/auth";
 import { useCart } from "@/app/lib/cartContext";
 import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import CartDrawer from "./CartDrawer";
-import {
-  Phone,
-  Mail,
-  Menu,
-  X,
-  ShoppingCart,
-  Search,
-  UserCircle,
-  LogOut,
-} from "lucide-react";
+import { Phone, Mail, Menu, X, ShoppingCart, Search, UserCircle, LogOut } from "lucide-react";
+import CurrencySelector from "./CurrencySelector";
 
 const navLinks = [
   { label: "Productos", href: "/products" },
@@ -115,7 +107,7 @@ export default function Header() {
           </a>
 
           {/* Desktop actions - Search, Cart, Login, Quote */}
-          <div className="hidden items-center gap-3 lg:flex flex-1">
+          <div className={`hidden items-center gap-3 lg:flex ${isProductsPage ? "ml-auto" : "flex-1"}`}>
             {/* Searchbar - Hidden on products page */}
             {!isProductsPage && (
               <form onSubmit={handleSearch} className="relative flex-1">
@@ -137,6 +129,7 @@ export default function Header() {
             )}
 
             <div className="flex items-center gap-3 shrink-0">
+              {isProductsPage && <CurrencySelector />}
               <button
                 onClick={() => setCartOpen(!cartOpen)}
                 className="relative rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
@@ -207,7 +200,8 @@ export default function Header() {
             </ul>
 
             {/* Dollar rate - positioned at right */}
-            <div className="absolute right-4">
+            <div className="absolute right-4 flex items-center gap-4">
+              <CurrencySelector />
               {dollarRate && (
                 <span className="text-sm font-semibold text-gray-700">
                   Dólar: ${dollarRate.toFixed(2)}
@@ -267,6 +261,9 @@ export default function Header() {
                 Dólar: ${dollarRate.toFixed(2)}
               </span>
             )}
+            <div className="w-full flex justify-center py-2 border-t border-gray-100 mt-3">
+              <CurrencySelector />
+            </div>
           </div>
           {!isProductsPage && (
             <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500">
