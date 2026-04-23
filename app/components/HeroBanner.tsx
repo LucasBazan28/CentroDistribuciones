@@ -34,7 +34,7 @@ const slides = [
   {
     title: "Envíos a Todo el País en 48hs",
     subtitle:
-      "Más de 30 años distribuyendo material eléctrico. Comprá online y recibí en tu domicilio.",
+      "Más de 40 años distribuyendo material eléctrico. Comprá online y recibí en tu domicilio.",
     cta: "Contactanos",
     ctaHref: "#contacto",
     gradient: "from-primary via-primary-dark to-dark",

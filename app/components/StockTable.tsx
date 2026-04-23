@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { AlertCircle, Eye, Edit2, X } from "lucide-react"
+import { useState, useMemo, useRef, useEffect } from "react"
+import { AlertCircle, Eye, Edit2, X, Save, Loader } from "lucide-react"
 
 interface Articulo {
   id: number
@@ -33,13 +33,19 @@ export default function StockTable({ initialData }: StockTableProps) {
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null)
   const [stockBajoOnly, setStockBajoOnly] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingData, setEditingData] = useState<Articulo | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<Articulo[]>(initialData)
+  const editFormRef = useRef<HTMLDivElement>(null)
 
   // Extract unique marcas and categorias
   const { marcas, categorias } = useMemo(() => {
     const marcasSet = new Set<string>()
     const categoriasSet = new Set<string>()
 
-    initialData.forEach(art => {
+    data.forEach(art => {
       if (art.marcas?.nombre) marcasSet.add(art.marcas.nombre)
       if (art.categorias?.nombre) categoriasSet.add(art.categorias.nombre)
     })
@@ -48,11 +54,11 @@ export default function StockTable({ initialData }: StockTableProps) {
       marcas: Array.from(marcasSet).sort(),
       categorias: Array.from(categoriasSet).sort(),
     }
-  }, [initialData])
+  }, [data])
 
   // Apply all filters
   const filteredArticulos = useMemo(() => {
-    return initialData.filter(art => {
+    return data.filter(art => {
       // Search filter
       if (searchTerm) {
         const search = searchTerm.toLowerCase()
@@ -89,9 +95,76 @@ export default function StockTable({ initialData }: StockTableProps) {
 
       return true
     })
-  }, [initialData, searchTerm, selectedMarca, selectedCategoria, stockBajoOnly, statusFilter])
+  }, [data, searchTerm, selectedMarca, selectedCategoria, stockBajoOnly, statusFilter])
 
   const hasActiveFilters = selectedMarca || selectedCategoria || stockBajoOnly || statusFilter !== "all"
+
+  // Scroll to edit form when editing
+  useEffect(() => {
+    if (editingId !== null && editFormRef.current) {
+      setTimeout(() => {
+        editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      }, 100)
+    }
+  }, [editingId])
+
+  const handleEdit = (articulo: Articulo) => {
+    setEditingId(articulo.id)
+    setEditingData({ ...articulo })
+    setError(null)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditingData(null)
+    setError(null)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingData) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/articulos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingData.id,
+          referencia: editingData.referencia,
+          cc: editingData.cc,
+          descripcion: editingData.descripcion,
+          embalaje: editingData.embalaje,
+          precio_unitario: editingData.precio_unitario,
+          moneda_id: editingData.moneda_id,
+          stock_minimo: editingData.stock_minimo,
+          stock: editingData.stock,
+          observacion: editingData.observacion,
+          marca_id: editingData.marca_id,
+          grupo_descuento_id: editingData.grupo_descuento_id,
+          categoria_id: editingData.categoria_id,
+          activo: editingData.activo,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update product")
+      }
+
+      const updatedProduct = await response.json()
+
+      // Update data with the new product
+      setData(data.map(item => item.id === updatedProduct.id ? updatedProduct : item))
+      setEditingId(null)
+      setEditingData(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error updating product")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   if (initialData.length === 0) {
     return (
@@ -267,6 +340,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => handleEdit(articulo)}
                         className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors"
                         title="Editar"
                       >
@@ -285,27 +359,189 @@ export default function StockTable({ initialData }: StockTableProps) {
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-sm text-gray-600 font-medium">Total Artículos</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{initialData.length}</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{data.length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-sm text-gray-600 font-medium">Stock Bajo</div>
           <div className="text-2xl font-bold text-red-600 mt-1">
-            {initialData.filter(a => a.stock < a.stock_minimo).length}
+            {data.filter(a => a.stock < a.stock_minimo).length}
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-sm text-gray-600 font-medium">Activos</div>
           <div className="text-2xl font-bold text-blue-600 mt-1">
-            {initialData.filter(a => a.activo).length}
+            {data.filter(a => a.activo).length}
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-sm text-gray-600 font-medium">Stock Total</div>
           <div className="text-2xl font-bold text-green-600 mt-1">
-            {initialData.reduce((sum, a) => sum + a.stock, 0)}
+            {data.reduce((sum, a) => sum + a.stock, 0)}
           </div>
         </div>
       </div>
+
+      {/* Edit Form */}
+      {editingId !== null && editingData && (
+        <div ref={editFormRef} className="mt-8 rounded-lg border border-gray-200 bg-white p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-gray-900">Editar Producto</h2>
+            <button
+              onClick={handleCancelEdit}
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+              disabled={isLoading}
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Referencia */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Referencia</label>
+              <input
+                type="text"
+                value={editingData.referencia}
+                onChange={(e) => setEditingData({ ...editingData, referencia: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* CC */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CC</label>
+              <input
+                type="number"
+                value={editingData.cc}
+                onChange={(e) => setEditingData({ ...editingData, cc: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Descripción */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <textarea
+                value={editingData.descripcion}
+                onChange={(e) => setEditingData({ ...editingData, descripcion: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                rows={2}
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Embalaje */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Embalaje</label>
+              <input
+                type="text"
+                value={editingData.embalaje}
+                onChange={(e) => setEditingData({ ...editingData, embalaje: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Precio Unitario */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio Unitario</label>
+              <input
+                type="number"
+                value={editingData.precio_unitario}
+                onChange={(e) => setEditingData({ ...editingData, precio_unitario: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+                step="0.01"
+              />
+            </div>
+
+            {/* Stock */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+              <input
+                type="number"
+                value={editingData.stock}
+                onChange={(e) => setEditingData({ ...editingData, stock: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Stock Mínimo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+              <input
+                type="number"
+                value={editingData.stock_minimo}
+                onChange={(e) => setEditingData({ ...editingData, stock_minimo: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Observación */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Observación</label>
+              <textarea
+                value={editingData.observacion || ""}
+                onChange={(e) => setEditingData({ ...editingData, observacion: e.target.value || null })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                rows={2}
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Activo */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="activo"
+                checked={editingData.activo}
+                onChange={(e) => setEditingData({ ...editingData, activo: e.target.checked })}
+                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              />
+              <label htmlFor="activo" className="text-sm font-medium text-gray-700">Activo</label>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="mt-6 flex gap-3 justify-end">
+            <button
+              onClick={handleCancelEdit}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Guardar Cambios
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -28,7 +28,7 @@ export default function Footer() {
             </h3>
             <p className="mb-6 text-sm leading-relaxed text-gray-400">
               Distribuidor mayorista de material eléctrico e industrial.
-              Más de 30 años ofreciendo soluciones integrales para
+              Más de 40 años ofreciendo soluciones integrales para
               empresas, electricistas e instaladores.
             </p>
             <div className="flex gap-3">

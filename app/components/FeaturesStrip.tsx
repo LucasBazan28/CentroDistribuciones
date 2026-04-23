@@ -13,8 +13,8 @@ const features = [
   },
   {
     icon: Award,
-    title: "+30 Años de Trayectoria",
-    description: "Más de tres décadas siendo referentes en distribución de material eléctrico.",
+    title: "+40 Años de Trayectoria",
+    description: "Más de cuatro décadas siendo referentes en distribución de material eléctrico.",
   },
   {
     icon: ShieldCheck,

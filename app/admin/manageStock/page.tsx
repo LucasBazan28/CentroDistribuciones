@@ -1,30 +1,16 @@
 import StockTable from "@/app/components/StockTable"
+import ManageStockClient from "@/app/admin/manageStock/ManageStockClient"
 import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import { ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
-interface Articulo {
+interface Marca {
   id: number
-  referencia: string
-  cc: number
-  descripcion: string
-  embalaje: string
-  precio_unitario: number
-  moneda_id: number
-  stock_minimo: number
-  stock: number
-  observacion: string | null
-  marca_id: number | null
-  activo: boolean
-  grupo_descuento_id: number
-  categoria_id: number | null
-  marcas?: { nombre: string } | null
-  grupo_descuento?: { nombre: string }
-  categorias?: { nombre: string } | null
+  nombre: string
 }
 
-async function fetchArticulos(): Promise<Articulo[]> {
+async function fetchMarcas(): Promise<Marca[]> {
   try {
     const supabase = await createSupabaseServerClient()
 
@@ -45,43 +31,25 @@ async function fetchArticulos(): Promise<Articulo[]> {
       redirect("/admin")
     }
 
-    // Fetch all articulos with pagination (1000 rows at a time)
-    let allData: Articulo[] = []
-    let offset = 0
-    const pageSize = 1000
+    // Fetch all marcas
+    const { data, error } = await supabase
+      .from("marcas")
+      .select("id, nombre")
+      .order("nombre", { ascending: true })
 
-    while (true) {
-      const { data, error } = await supabase
-        .from("articulos")
-        .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
-        .order("created_at", { ascending: false })
-        .range(offset, offset + pageSize - 1)
-
-      if (error) {
-        throw error
-      }
-
-      if (!data || data.length === 0) {
-        break
-      }
-
-      allData = [...allData, ...data]
-
-      if (data.length < pageSize) {
-        break
-      }
-
-      offset += pageSize
+    if (error) {
+      throw error
     }
-    return allData
+
+    return data || []
   } catch (error) {
-    console.error("Error fetching articulos:", error)
+    console.error("Error fetching marcas:", error)
     return []
   }
 }
 
 export default async function ManageStockPage() {
-  const articulos = await fetchArticulos()
+  const marcas = await fetchMarcas()
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -105,26 +73,13 @@ export default async function ManageStockPage() {
               Manejar Stock
             </h1>
             <p className="mt-2 text-gray-600">
-              Visualiza y administra el inventario de todos tus artículos.
+              Visualiza y administra el inventario de tus artículos por marca.
             </p>
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="rounded-2xl bg-white p-8 shadow-lg">
-          <StockTable initialData={articulos} />
-        </div>
-
-        {/* Info Box */}
-        <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-          <p className="font-semibold">📊 Información útil:</p>
-          <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>Los artículos con stock rojo están por debajo del mínimo requerido</li>
-            <li>Puedes buscar artículos por referencia, descripción o marca</li>
-            <li>Los resúmenes al final muestran estadísticas generales del inventario</li>
-            <li>Usa los botones de acciones para editar detalles o ver más información</li>
-          </ul>
-        </div>
+        {/* Client Component */}
+        <ManageStockClient marcas={marcas} />
       </div>
     </main>
   )
