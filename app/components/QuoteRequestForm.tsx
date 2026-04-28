@@ -25,6 +25,22 @@ export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: Quot
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Validar nombre: solo letras y espacios
+    if (name === "nombre") {
+      const filtered = value.replace(/[^a-záéíóúñA-ZÁÉÍÓÚÑ\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: filtered }));
+      return;
+    }
+
+    // Validar teléfono: solo números, +, - y espacios
+    if (name === "telefono") {
+      const filtered = value.replace(/[^0-9+\-\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: filtered }));
+      return;
+    }
+
+    // Otros campos sin restricción
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 

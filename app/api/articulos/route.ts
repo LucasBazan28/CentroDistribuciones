@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       grupo_descuento_id,
       categoria_id,
       activo,
+      imageURL,
     } = body
 
     // Validate required fields
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
           marca_id: marca_id ? parseInt(marca_id) : null,
           grupo_descuento_id: parseInt(grupo_descuento_id),
           categoria_id: categoria_id ? parseInt(categoria_id) : null,
+          imageURL: imageURL || null,
           ...(activo !== undefined && { activo }),
         },
       ])
@@ -263,6 +265,7 @@ export async function PUT(request: Request) {
       grupo_descuento_id,
       categoria_id,
       activo,
+      imageURL,
     } = body
 
     // Validate required fields
@@ -324,6 +327,7 @@ export async function PUT(request: Request) {
         marca_id: marca_id ? parseInt(marca_id) : null,
         grupo_descuento_id: parseInt(grupo_descuento_id),
         categoria_id: categoria_id ? parseInt(categoria_id) : null,
+        imageURL: imageURL || null,
         ...(activo !== undefined && { activo }),
       })
       .eq("id", id)

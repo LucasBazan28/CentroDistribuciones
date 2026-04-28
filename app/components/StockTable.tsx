@@ -18,6 +18,7 @@ interface Articulo {
   activo: boolean
   grupo_descuento_id: number
   categoria_id: number | null
+  imageURL?: string | null
   marcas?: { nombre: string } | null
   grupo_descuento?: { nombre: string }
   categorias?: { nombre: string } | null
@@ -145,6 +146,7 @@ export default function StockTable({ initialData }: StockTableProps) {
           grupo_descuento_id: editingData.grupo_descuento_id,
           categoria_id: editingData.categoria_id,
           activo: editingData.activo,
+          imageURL: editingData.imageURL || null,
         }),
       })
 
@@ -495,6 +497,19 @@ export default function StockTable({ initialData }: StockTableProps) {
                 onChange={(e) => setEditingData({ ...editingData, observacion: e.target.value || null })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={2}
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Image URL */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
+              <input
+                type="url"
+                value={editingData.imageURL || ""}
+                onChange={(e) => setEditingData({ ...editingData, imageURL: e.target.value || null })}
+                placeholder="https://ejemplo.com/imagen.jpg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
               />
             </div>
