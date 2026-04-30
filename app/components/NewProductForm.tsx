@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser"
-import { AlertCircle, CheckCircle, Loader2, Save } from "lucide-react"
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/imageUpload"
+import { AlertCircle, CheckCircle, Loader2, Save, X, Image as ImageIcon } from "lucide-react"
 
 interface Moneda {
   id: number
@@ -31,6 +32,9 @@ export default function NewProductForm() {
   const [marcas, setMarcas] = useState<Marca[]>([])
   const [gruposDescuento, setGruposDescuento] = useState<GrupoDescuento[]>([])
   const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<GrupoDescuento[]>([])
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     referencia: "",
@@ -103,6 +107,38 @@ export default function NewProductForm() {
       imageURL: "",
     })
     setGruposDescuentoFiltrados([])
+    setImageFile(null)
+    setImagePreview(null)
+    setImageUploadError(null)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageUploadError(null)
+
+    // Validate file
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setImageUploadError(validationError)
+      return
+    }
+
+    setImageFile(file)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    setImageUploadError(null)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -134,12 +170,29 @@ export default function NewProductForm() {
     try {
       setSubmitting(true)
 
+      let imageURLToUse = formData.imageURL
+
+      // Upload image if selected
+      if (imageFile) {
+        try {
+          imageURLToUse = await uploadImageToCloudinary(imageFile)
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Failed to upload image"
+          setError(`Image upload error: ${errorMessage}`)
+          setSubmitting(false)
+          return
+        }
+      }
+
       const response = await fetch("/api/articulos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          imageURL: imageURLToUse,
+        }),
       })
 
       const data = await response.json()
@@ -410,9 +463,74 @@ export default function NewProductForm() {
       <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-6">
         <h3 className="text-lg font-semibold text-gray-900">Media</h3>
 
+        {/* Image Upload */}
+        <div>
+          <label htmlFor="imageFile" className="block text-sm font-medium text-gray-700 mb-2">
+            Imagen del Producto
+          </label>
+          <div className="space-y-3">
+            {/* File Input */}
+            <div className="relative">
+              <input
+                id="imageFile"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={submitting}
+                className="hidden"
+              />
+              <label
+                htmlFor="imageFile"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ImageIcon className="h-5 w-5 text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  {imageFile ? imageFile.name : "Click para seleccionar imagen"}
+                </span>
+              </label>
+            </div>
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="relative">
+                <div className="relative w-full max-w-xs">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    title="Remover imagen"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Tamaño: {(imageFile?.size || 0) / 1024 / 1024 < 1 ? ((imageFile?.size || 0) / 1024).toFixed(0) : ((imageFile?.size || 0) / 1024 / 1024).toFixed(2)} {(imageFile?.size || 0) / 1024 / 1024 < 1 ? "KB" : "MB"}
+                </p>
+              </div>
+            )}
+
+            {/* Image Upload Error */}
+            {imageUploadError && (
+              <div className="flex gap-2 rounded-lg bg-red-50 p-3 text-red-600">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <p className="text-sm">{imageUploadError}</p>
+              </div>
+            )}
+          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            Formatos soportados: JPG, PNG, GIF, WebP. Tamaño máximo: 5MB
+          </p>
+        </div>
+
+        {/* URL Fallback */}
         <div>
           <label htmlFor="imageURL" className="block text-sm font-medium text-gray-700 mb-2">
-            URL de Imagen
+            O ingresa una URL (opcional)
           </label>
           <input
             id="imageURL"
@@ -422,9 +540,10 @@ export default function NewProductForm() {
             onChange={handleChange}
             placeholder="https://ejemplo.com/imagen.jpg"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            disabled={submitting || !!imageFile}
           />
-          <p className="mt-2 text-sm text-gray-500">
-            Ingresa la URL completa de la imagen del producto (opcional)
+          <p className="mt-1 text-xs text-gray-500">
+            {imageFile ? "Desactivo porque ya seleccionaste una imagen" : "Se usará si no subiste una imagen"}
           </p>
         </div>
       </div>

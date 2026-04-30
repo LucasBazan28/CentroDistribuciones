@@ -8,6 +8,7 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
     let allProducts: any[] = []
     let offset = 0
     let isFirstChunk = true
+    const chunkLog: any[] = []
 
     while (true) {
       // First chunk is 60 to show results quickly, subsequent chunks are 300
@@ -25,6 +26,16 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
       const chunk = await response.json()
       if (!chunk || chunk.length === 0) break
 
+      // Debug: log chunk info
+      const chunk1401Count = chunk.filter((p: any) => p.id === 1401).length
+      chunkLog.push({
+        offset,
+        limit: pageSize,
+        chunkSize: chunk.length,
+        product1401InChunk: chunk1401Count > 0,
+        product1401Count: chunk1401Count
+      })
+
       allProducts = [...allProducts, ...chunk]
 
       // Call progress callback to update UI with newly loaded products
@@ -39,6 +50,28 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
 
       offset += pageSize
     }
+
+    // Debug: log all collected data
+    const idFrequency = new Map<number, number>()
+    allProducts.forEach(p => {
+      idFrequency.set(p.id, (idFrequency.get(p.id) || 0) + 1)
+    })
+
+    const duplicateIds = Array.from(idFrequency.entries())
+      .filter(([_, count]) => count > 1)
+      .map(([id, count]) => ({ id, count }))
+      .sort((a, b) => b.count - a.count)
+
+    console.log('=== FETCH ALL PRODUCTS DEBUG ===')
+    console.log('Total products loaded:', allProducts.length)
+    console.log('Chunk loading details:', chunkLog)
+    console.log('Total unique IDs:', idFrequency.size)
+    console.log('Product 1401 occurrences:', idFrequency.get(1401) || 0)
+    if (duplicateIds.length > 0) {
+      console.log('Total IDs with duplicates:', duplicateIds.length)
+      console.log('Top 10 most duplicated IDs:', duplicateIds.slice(0, 10))
+    }
+    console.log('All product IDs:', Array.from(allProducts.map(p => p.id)))
 
     return allProducts
   } catch (error) {

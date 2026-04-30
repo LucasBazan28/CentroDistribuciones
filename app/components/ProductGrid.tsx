@@ -62,9 +62,9 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {products.map((product) => (
+      {products.map((product, index) => (
         <div
-          key={product.id}
+          key={`${index}-${product.id}`}
           className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all hover:-translate-y-1 hover:shadow-lg"
         >
           {/* Product image placeholder */}

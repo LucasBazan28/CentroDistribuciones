@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect } from "react"
-import { AlertCircle, Eye, Edit2, X, Save, Loader } from "lucide-react"
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/imageUpload"
+import { AlertCircle, Eye, Edit2, X, Save, Loader, Image as ImageIcon } from "lucide-react"
 
 interface Articulo {
   id: number
@@ -39,6 +40,9 @@ export default function StockTable({ initialData }: StockTableProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<Articulo[]>(initialData)
+  const [editImageFile, setEditImageFile] = useState<File | null>(null)
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const editFormRef = useRef<HTMLDivElement>(null)
 
   // Extract unique marcas and categorias
@@ -119,6 +123,38 @@ export default function StockTable({ initialData }: StockTableProps) {
     setEditingId(null)
     setEditingData(null)
     setError(null)
+    setEditImageFile(null)
+    setEditImagePreview(null)
+    setImageUploadError(null)
+  }
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageUploadError(null)
+
+    // Validate file
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setImageUploadError(validationError)
+      return
+    }
+
+    setEditImageFile(file)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setEditImagePreview(event.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearEditImage = () => {
+    setEditImageFile(null)
+    setEditImagePreview(null)
+    setImageUploadError(null)
   }
 
   const handleSaveEdit = async () => {
@@ -128,6 +164,20 @@ export default function StockTable({ initialData }: StockTableProps) {
     setError(null)
 
     try {
+      let imageURLToUse = editingData.imageURL
+
+      // Upload image if selected
+      if (editImageFile) {
+        try {
+          imageURLToUse = await uploadImageToCloudinary(editImageFile)
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Failed to upload image"
+          setError(`Image upload error: ${errorMessage}`)
+          setIsLoading(false)
+          return
+        }
+      }
+
       const response = await fetch("/api/articulos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -146,7 +196,7 @@ export default function StockTable({ initialData }: StockTableProps) {
           grupo_descuento_id: editingData.grupo_descuento_id,
           categoria_id: editingData.categoria_id,
           activo: editingData.activo,
-          imageURL: editingData.imageURL || null,
+          imageURL: imageURLToUse || null,
         }),
       })
 
@@ -161,6 +211,9 @@ export default function StockTable({ initialData }: StockTableProps) {
       setData(data.map(item => item.id === updatedProduct.id ? updatedProduct : item))
       setEditingId(null)
       setEditingData(null)
+      setEditImageFile(null)
+      setEditImagePreview(null)
+      setImageUploadError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error updating product")
     } finally {
@@ -501,17 +554,78 @@ export default function StockTable({ initialData }: StockTableProps) {
               />
             </div>
 
-            {/* Image URL */}
+            {/* Image */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
-              <input
-                type="url"
-                value={editingData.imageURL || ""}
-                onChange={(e) => setEditingData({ ...editingData, imageURL: e.target.value || null })}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                disabled={isLoading}
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del Producto</label>
+              <div className="space-y-3">
+                {/* Current Image */}
+                {(editImagePreview || editingData.imageURL) && !editImageFile && (
+                  <div className="relative w-full max-w-xs">
+                    <img
+                      src={editImagePreview || editingData.imageURL || ""}
+                      alt="Current"
+                      className="w-full h-40 object-cover rounded-lg border border-gray-300"
+                    />
+                    <p className="mt-2 text-xs text-gray-500">Imagen actual</p>
+                  </div>
+                )}
+
+                {/* File Input */}
+                <div className="relative">
+                  <input
+                    id="editImageFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditImageChange}
+                    disabled={isLoading}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="editImageFile"
+                    className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ImageIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {editImageFile ? editImageFile.name : "Click para seleccionar imagen"}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Image Preview */}
+                {editImagePreview && editImageFile && (
+                  <div className="relative">
+                    <div className="relative w-full max-w-xs">
+                      <img
+                        src={editImagePreview}
+                        alt="Preview"
+                        className="w-full h-40 object-cover rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearEditImage}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        title="Remover imagen"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Tamaño: {(editImageFile?.size || 0) / 1024 / 1024 < 1 ? ((editImageFile?.size || 0) / 1024).toFixed(0) : ((editImageFile?.size || 0) / 1024 / 1024).toFixed(2)} {(editImageFile?.size || 0) / 1024 / 1024 < 1 ? "KB" : "MB"}
+                    </p>
+                  </div>
+                )}
+
+                {/* Image Upload Error */}
+                {imageUploadError && (
+                  <div className="flex gap-2 rounded-lg bg-red-50 p-3 text-red-600">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm">{imageUploadError}</p>
+                  </div>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Formatos: JPG, PNG, GIF, WebP. Máximo: 5MB
+              </p>
             </div>
 
             {/* Activo */}

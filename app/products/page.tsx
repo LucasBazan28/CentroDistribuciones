@@ -179,7 +179,7 @@ export default function ProductsPage() {
         <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
           <SearchBar
             onSearch={setSearchTerm}
-            placeholder="Buscar referencia, marca o descripción... Ej: Schneider A9F74210"
+            placeholder="Buscar referencia, marca o descripción... Ej: Zoloda BPN-50"
             compact={true}
           />
         </div>

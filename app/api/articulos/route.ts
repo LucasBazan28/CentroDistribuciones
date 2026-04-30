@@ -100,7 +100,29 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json(data[0], { status: 201 })
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { error: "Failed to create product" },
+        { status: 500 }
+      )
+    }
+
+    // Fetch the complete product with relations
+    const { data: completeData, error: fetchError } = await supabase
+      .from("articulos")
+      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+      .eq("id", data[0].id)
+      .maybeSingle()
+
+    if (fetchError || !completeData) {
+      console.error("Fetch error:", fetchError)
+      return NextResponse.json(
+        { error: "Failed to fetch created product" },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(completeData, { status: 201 })
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(
@@ -170,7 +192,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("articulos")
-      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)", { count: "exact" })
+      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id", { count: "exact" })
       .eq("activo", true)
 
     // Apply filters
@@ -190,9 +212,9 @@ export async function GET(request: Request) {
       query = query.lte("precio_venta", maxPrice)
     }
 
-    // Apply search filter - must be done client-side as Supabase text search needs full-text index
     const { data: allData, error } = await query
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (error) {
@@ -209,8 +231,6 @@ export async function GET(request: Request) {
         const searchFields = [
           item.referencia,
           item.descripcion,
-          item.marcas?.nombre || "",
-          item.categorias?.nombre || "",
         ]
         return searchFields.some((field: string) =>
           field.toLowerCase().includes(search)
@@ -218,7 +238,48 @@ export async function GET(request: Request) {
       })
     }
 
-    return NextResponse.json(filteredData)
+    // Fetch relations separately to avoid JOIN issues
+    const marcasMap = new Map()
+    const categoriasMap = new Map()
+    const grupoDescuentoMap = new Map()
+
+    const uniqueMarcaIds = [...new Set(filteredData.map(p => p.marca_id))]
+    const uniqueCategoriaIds = [...new Set(filteredData.map(p => p.categoria_id))]
+    const uniqueGrupoDescuentoIds = [...new Set(filteredData.map(p => p.grupo_descuento_id))]
+
+    if (uniqueMarcaIds.length > 0) {
+      const { data: marcas } = await supabase
+        .from("marcas")
+        .select("id, nombre")
+        .in("id", uniqueMarcaIds)
+      marcas?.forEach(m => marcasMap.set(m.id, m))
+    }
+
+    if (uniqueCategoriaIds.length > 0) {
+      const { data: categorias } = await supabase
+        .from("categorias")
+        .select("id, nombre")
+        .in("id", uniqueCategoriaIds)
+      categorias?.forEach(c => categoriasMap.set(c.id, c))
+    }
+
+    if (uniqueGrupoDescuentoIds.length > 0) {
+      const { data: grupoDescuento } = await supabase
+        .from("grupo_descuento")
+        .select("id, nombre, descuento")
+        .in("id", uniqueGrupoDescuentoIds)
+      grupoDescuento?.forEach(g => grupoDescuentoMap.set(g.id, g))
+    }
+
+    // Merge relations into data
+    const enrichedData = filteredData.map(item => ({
+      ...item,
+      marcas: item.marca_id ? marcasMap.get(item.marca_id) : null,
+      categorias: item.categoria_id ? categoriasMap.get(item.categoria_id) : null,
+      grupo_descuento: item.grupo_descuento_id ? grupoDescuentoMap.get(item.grupo_descuento_id) : null,
+    }))
+
+    return NextResponse.json(enrichedData)
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(
@@ -341,7 +402,29 @@ export async function PUT(request: Request) {
       )
     }
 
-    return NextResponse.json(data[0], { status: 200 })
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { error: "Product not found after update" },
+        { status: 404 }
+      )
+    }
+
+    // Fetch the complete product with relations
+    const { data: completeData, error: fetchError } = await supabase
+      .from("articulos")
+      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+      .eq("id", id)
+      .maybeSingle()
+
+    if (fetchError || !completeData) {
+      console.error("Fetch error:", fetchError)
+      return NextResponse.json(
+        { error: "Failed to fetch updated product" },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(completeData, { status: 200 })
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(
