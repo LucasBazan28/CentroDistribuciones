@@ -10,6 +10,7 @@ export interface Product {
   marcas?: { nombre: string } | null;
   grupo_descuento?: { nombre: string; descuento: number } | null;
   precio_venta: number;
+  imageURL?: string | null;
 }
 
 export interface Category {

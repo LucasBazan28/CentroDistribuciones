@@ -69,13 +69,21 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
         >
           {/* Product image placeholder */}
           <div
-            className={`relative flex h-48 items-center justify-center ${getGradientForProduct(
+            className={`relative h-48 overflow-hidden ${getGradientForProduct(
               product.id
             )}`}
           >
-            <span className="text-4xl font-light text-gray-300">
-              {product.categorias?.nombre?.charAt(0) || "P"}
-            </span>
+            {product.imageURL ? (
+              <img
+                src={product.imageURL}
+                alt={product.referencia}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-4xl font-light text-gray-300">P</span>
+              </div>
+            )}
             <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
