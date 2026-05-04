@@ -1,6 +1,7 @@
 "use client"
 
-import { Eye, ShoppingCart } from "lucide-react"
+import Link from "next/link"
+import { ShoppingCart } from "lucide-react"
 import { Product } from "@/app/lib/types"
 import { useCart } from "@/app/lib/cartContext"
 import { useExchangeRate } from "@/app/lib/exchangeRateContext"
@@ -85,12 +86,12 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
               </div>
             )}
             <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
+              {/*<button
                 className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
                 aria-label="Ver detalle"
               >
                 <Eye size={16} />
-              </button>
+              </button> */}
               <button
                 onClick={() => handleAddToCart(product)}
                 className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
@@ -120,9 +121,9 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
               <span className="text-lg font-bold text-gray-900">
                 {formatPrice(product.precio_venta)}
               </span>
-              <button className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
+              <Link href={`/products/${product.id}`} className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                 Ver más
-              </button>
+              </Link>
             </div>
 
             {/* Stock indicator */}

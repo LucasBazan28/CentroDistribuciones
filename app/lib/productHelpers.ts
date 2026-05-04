@@ -20,7 +20,8 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
       params.set("offset", offset.toString())
       params.set("limit", pageSize.toString())
 
-      const response = await fetch(`/api/articulos?${params.toString()}`)
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+      const response = await fetch(`${baseUrl}/api/articulos?${params.toString()}`)
       if (!response.ok) throw new Error("Error fetching products")
 
       const chunk = await response.json()
@@ -54,6 +55,67 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
     return allProducts
   } catch (error) {
     console.error("Error fetching all products:", error)
+    return []
+  }
+}
+
+/**
+ * Fetches a single product by ID from the public API
+ */
+export async function fetchProductById(id: number) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+    const response = await fetch(`${baseUrl}/api/articulos/${id}?public=true`)
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null
+      }
+      throw new Error(`Failed to fetch product: ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    console.error(`Error fetching product ${id}:`, error)
+    return null
+  }
+}
+
+/**
+ * Fetches products related to a given product (same category or brand)
+ */
+export async function fetchRelatedProducts(product: any, limit: number = 4) {
+  try {
+    const relatedProducts: any[] = []
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+
+    // Fetch products from same category
+    if (product.categoria_id) {
+      const response = await fetch(
+        `${baseUrl}/api/articulos?public=true&category=${product.categoria_id}&limit=${limit}`
+      )
+      if (response.ok) {
+        const data = await response.json()
+        relatedProducts.push(...data.filter((p: any) => p.id !== product.id))
+      }
+    }
+
+    // If we don't have enough, try to fetch from same brand
+    if (relatedProducts.length < limit && product.marca_id) {
+      const response = await fetch(
+        `${baseUrl}/api/articulos?public=true&brand=${product.marca_id}&limit=${limit}`
+      )
+      if (response.ok) {
+        const data = await response.json()
+        data.forEach((p: any) => {
+          if (p.id !== product.id && !relatedProducts.find((rp) => rp.id === p.id)) {
+            relatedProducts.push(p)
+          }
+        })
+      }
+    }
+
+    return relatedProducts.slice(0, limit)
+  } catch (error) {
+    console.error("Error fetching related products:", error)
     return []
   }
 }
