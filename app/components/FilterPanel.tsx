@@ -1,11 +1,11 @@
 "use client"
 
-import { ChevronDown, X } from "lucide-react"
+import { ChevronDown, ChevronRight, X } from "lucide-react"
 import { useState } from "react"
 
 export interface FilterState {
-  category: string | null
-  brand: string | null
+  categories: string[]
+  brands: string[]
   minPrice: string
   maxPrice: string
   currency: "USD" | "ARS"
@@ -39,17 +39,37 @@ export default function FilterPanel({
     }))
   }
 
-  const handleCategoryChange = (categoryId: string | null) => {
+  const handleCategoryChange = (categoryId: string) => {
+    const newCategories = filters.categories.includes(categoryId)
+      ? filters.categories.filter((id) => id !== categoryId)
+      : [...filters.categories, categoryId]
     onFilterChange({
       ...filters,
-      category: categoryId,
+      categories: newCategories,
     })
   }
 
-  const handleBrandChange = (brandId: string | null) => {
+  const handleClearCategories = () => {
     onFilterChange({
       ...filters,
-      brand: brandId,
+      categories: [],
+    })
+  }
+
+  const handleBrandChange = (brandId: string) => {
+    const newBrands = filters.brands.includes(brandId)
+      ? filters.brands.filter((id) => id !== brandId)
+      : [...filters.brands, brandId]
+    onFilterChange({
+      ...filters,
+      brands: newBrands,
+    })
+  }
+
+  const handleClearBrands = () => {
+    onFilterChange({
+      ...filters,
+      brands: [],
     })
   }
 
@@ -69,7 +89,7 @@ export default function FilterPanel({
     })
   }
 
-  const hasActiveFilters = filters.category || filters.brand || filters.minPrice || filters.maxPrice || filters.currency !== "USD"
+  const hasActiveFilters = filters.categories.length > 0 || filters.brands.length > 0 || filters.minPrice || filters.maxPrice || filters.currency !== "USD"
 
   return (
     <div className="h-fit rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -102,23 +122,19 @@ export default function FilterPanel({
         </button>
         {expandedSections.category && (
           <div className="mt-4 space-y-2">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="category"
-                checked={!filters.category}
-                onChange={() => handleCategoryChange(null)}
-                className="h-4 w-4 rounded border-gray-300 text-primary"
-              />
-              <span className="text-sm text-gray-600">Todas</span>
-            </label>
+            {filters.categories.length > 0 && (
+              <button
+                onClick={handleClearCategories}
+                className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors mb-2 block"
+              >
+                Limpiar selección
+              </button>
+            )}
             {categories.map((cat) => (
               <label key={cat.id} className="flex items-center gap-3 cursor-pointer">
                 <input
-                  type="radio"
-                  name="category"
-                  value={cat.id}
-                  checked={filters.category === cat.id.toString()}
+                  type="checkbox"
+                  checked={filters.categories.includes(cat.id.toString())}
                   onChange={() => handleCategoryChange(cat.id.toString())}
                   className="h-4 w-4 rounded border-gray-300 text-primary"
                 />
@@ -144,23 +160,19 @@ export default function FilterPanel({
         </button>
         {expandedSections.brand && (
           <div className="mt-4 space-y-2">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="brand"
-                checked={!filters.brand}
-                onChange={() => handleBrandChange(null)}
-                className="h-4 w-4 rounded border-gray-300 text-primary"
-              />
-              <span className="text-sm text-gray-600">Todas</span>
-            </label>
+            {filters.brands.length > 0 && (
+              <button
+                onClick={handleClearBrands}
+                className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors mb-2 block"
+              >
+                Limpiar selección
+              </button>
+            )}
             {brands.map((brand) => (
               <label key={brand.id} className="flex items-center gap-3 cursor-pointer">
                 <input
-                  type="radio"
-                  name="brand"
-                  value={brand.id}
-                  checked={filters.brand === brand.id.toString()}
+                  type="checkbox"
+                  checked={filters.brands.includes(brand.id.toString())}
                   onChange={() => handleBrandChange(brand.id.toString())}
                   className="h-4 w-4 rounded border-gray-300 text-primary"
                 />
@@ -173,67 +185,50 @@ export default function FilterPanel({
 
       {/* Price Range Filter */}
       <div>
-        <button
-          onClick={() => toggleSection("price")}
-          className="flex w-full items-center justify-between text-sm font-semibold text-gray-900 hover:text-primary transition-colors"
-        >
-          Rango de Precio
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${
-              expandedSections.price ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-        {expandedSections.price && (
-          <div className="mt-4 space-y-3">
-            {/* Currency selector */}
-            <div className="mb-4 pb-3 border-b border-gray-100">
-              <label className="text-xs font-semibold text-gray-700 block mb-2">Moneda</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleCurrencyChange("USD")}
-                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-                    filters.currency === "USD"
-                      ? "bg-primary text-white"
-                      : "border border-gray-200 text-gray-700 hover:border-primary"
-                  }`}
-                >
-                  USD
-                </button>
-                <button
-                  onClick={() => handleCurrencyChange("ARS")}
-                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-                    filters.currency === "ARS"
-                      ? "bg-primary text-white"
-                      : "border border-gray-200 text-gray-700 hover:border-primary"
-                  }`}
-                >
-                  ARS
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-700">Mínimo</label>
-              <input
-                type="number"
-                value={filters.minPrice}
-                onChange={(e) => handlePriceChange("minPrice", e.target.value)}
-                placeholder="$0"
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-700">Máximo</label>
-              <input
-                type="number"
-                value={filters.maxPrice}
-                onChange={(e) => handlePriceChange("maxPrice", e.target.value)}
-                placeholder="Sin límite"
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">Rango de Precio</h4>
+        <div className="space-y-3">
+          {/* Currency selector */}
+          <div className="mb-4 pb-3 border-b border-gray-100 flex gap-2">
+            <button
+              onClick={() => handleCurrencyChange("ARS")}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                filters.currency === "ARS"
+                  ? "bg-primary text-white"
+                  : "border border-gray-200 text-gray-700 hover:border-primary"
+              }`}
+            >
+              AR$
+            </button>
+            <button
+              onClick={() => handleCurrencyChange("USD")}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                filters.currency === "USD"
+                  ? "bg-primary text-white"
+                  : "border border-gray-200 text-gray-700 hover:border-primary"
+              }`}
+            >
+              U$D
+            </button>
           </div>
-        )}
+          <div className="flex items-center">
+            <input
+              type="number"
+              value={filters.minPrice}
+              onChange={(e) => handlePriceChange("minPrice", e.target.value)}
+              placeholder="Mínimo"
+              className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
+            />
+          </div>
+          <div className="flex items-center">
+            <input
+              type="number"
+              value={filters.maxPrice}
+              onChange={(e) => handlePriceChange("maxPrice", e.target.value)}
+              placeholder="Máximo"
+              className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

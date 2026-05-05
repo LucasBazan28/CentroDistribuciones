@@ -7,10 +7,15 @@ interface SearchBarProps {
   onSearch: (searchTerm: string) => void
   placeholder?: string
   compact?: boolean
+  initialValue?: string
 }
 
-export default function SearchBar({ onSearch, placeholder = "Buscar productos por referencia, descripción o marca...", compact = false }: SearchBarProps) {
-  const [searchTerm, setSearchTerm] = useState("")
+export default function SearchBar({ onSearch, placeholder = "Buscar productos por referencia, descripción o marca...", compact = false, initialValue = "" }: SearchBarProps) {
+  const [searchTerm, setSearchTerm] = useState(initialValue)
+
+  useEffect(() => {
+    setSearchTerm(initialValue)
+  }, [initialValue])
 
   // Debounce search
   useEffect(() => {

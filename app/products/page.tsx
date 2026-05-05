@@ -19,8 +19,8 @@ export default function ProductsPage() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filters, setFilters] = useState<FilterState>({
-    category: null,
-    brand: null,
+    categories: [],
+    brands: [],
     minPrice: "",
     maxPrice: "",
     currency: "USD",
@@ -35,13 +35,20 @@ export default function ProductsPage() {
     setIsLoadingAll(true)
 
     const loadProducts = async () => {
+      // Get search term from URL first
+      const searchParam = searchParams.get("search")
+      if (searchParam) {
+        setSearchTerm(searchParam)
+      }
+
+      // Pass search term to fetch function
       const products = await fetchAllProducts((products) => {
         // Update UI with progress
         setAllProducts(products)
         const { categories, brands } = extractFilters(products)
         setCategories(categories)
         setBrands(brands)
-      })
+      }, searchParam || undefined)
 
       // After all products are loaded, apply URL filters if present
       const brandParam = searchParams.get("brand")
@@ -57,7 +64,7 @@ export default function ProductsPage() {
           if (matchingBrand) {
             setFilters((prev) => ({
               ...prev,
-              brand: matchingBrand.id.toString(),
+              brands: [matchingBrand.id.toString()],
             }))
           }
         }
@@ -69,7 +76,7 @@ export default function ProductsPage() {
           if (matchingCategory) {
             setFilters((prev) => ({
               ...prev,
-              category: matchingCategory.id.toString(),
+              categories: [matchingCategory.id.toString()],
             }))
           }
         }
@@ -80,6 +87,24 @@ export default function ProductsPage() {
 
     loadProducts()
   }, [searchParams])
+
+  // Refetch products when search term changes (with debounce)
+  useEffect(() => {
+    setIsLoadingAll(true)
+
+    const timer = setTimeout(async () => {
+      const products = await fetchAllProducts((products) => {
+        setAllProducts(products)
+        const { categories, brands } = extractFilters(products)
+        setCategories(categories)
+        setBrands(brands)
+      }, searchTerm || undefined)
+
+      setIsLoadingAll(false)
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
@@ -97,13 +122,13 @@ export default function ProductsPage() {
         if (!matchesSearch) return false
       }
 
-      // Category filter
-      if (filters.category && product.categoria_id !== parseInt(filters.category)) {
+      // Category filter - show all if no categories selected
+      if (filters.categories.length > 0 && (!product.categoria_id || !filters.categories.includes(product.categoria_id.toString()))) {
         return false
       }
 
-      // Brand filter
-      if (filters.brand && product.marca_id !== parseInt(filters.brand)) {
+      // Brand filter - show all if no brands selected
+      if (filters.brands.length > 0 && (!product.marca_id || !filters.brands.includes(product.marca_id.toString()))) {
         return false
       }
 
@@ -154,8 +179,8 @@ export default function ProductsPage() {
 
   const handleClearFilters = () => {
     setFilters({
-      category: null,
-      brand: null,
+      categories: [],
+      brands: [],
       minPrice: "",
       maxPrice: "",
       currency: "USD",
@@ -181,6 +206,7 @@ export default function ProductsPage() {
             onSearch={setSearchTerm}
             placeholder="Buscar referencia, marca o descripción... Ej: Zoloda BPN-50"
             compact={true}
+            initialValue={searchTerm}
           />
         </div>
       </div>

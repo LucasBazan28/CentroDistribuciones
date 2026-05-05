@@ -3,7 +3,7 @@
  * First chunk: 60 products (for quick initial display)
  * Subsequent chunks: 300 products (for efficient bulk loading)
  */
-export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
+export async function fetchAllProducts(onProgress?: (products: any[]) => void, searchTerm?: string) {
   try {
     let allProducts: any[] = []
     let offset = 0
@@ -19,6 +19,9 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void) {
       params.set("public", "true")
       params.set("offset", offset.toString())
       params.set("limit", pageSize.toString())
+      if (searchTerm) {
+        params.set("search", searchTerm)
+      }
 
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
       const response = await fetch(`${baseUrl}/api/articulos?${params.toString()}`)

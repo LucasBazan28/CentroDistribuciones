@@ -10,14 +10,7 @@ import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import CartDrawer from "./CartDrawer";
 import { Phone, Mail, Menu, X, ShoppingCart, Search, UserCircle, LogOut } from "lucide-react";
 import CurrencySelector from "./CurrencySelector";
-
-const navLinks = [
-  { label: "Productos", href: "/products" },
-  { label: "Automatización", href: "#categorias" },
-  { label: "Iluminación", href: "#categorias" },
-  { label: "Cables", href: "#categorias" },
-  { label: "Contacto", href: "#contacto" },
-];
+import { headerNavLinks } from "@/app/lib/navigation";
 
 export default function Header() {
   const router = useRouter();
@@ -70,15 +63,17 @@ export default function Header() {
                 <Phone size={14} />
                 +54-9-291-643-1275
               </a>
-              <a href="tel:5492915051422" className="flex items-center gap-2">
+              <a 
+                href="tel:5492915051422"
+                className="flex items-center gap-1.5 hover:text-accent transition-colors">
                   <Phone size={14} /> +54-9-291-505-1422
               </a>
               <a
-                href="mailto:ventas@centrodistribuciones.com.ar"
+                href="mailto:distribucionzoloda.bb@gmail.com"
                 className="flex items-center gap-1.5 hover:text-accent transition-colors"
               >
                 <Mail size={14} />
-                ventas@centrodistribuciones.com.ar
+                distribucionzoloda.bb@gmail.com
               </a>
             </div>
             <div className="mx-auto flex items-center gap-2 text-xs sm:mx-0 sm:text-sm">
@@ -187,7 +182,7 @@ export default function Header() {
           <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-3">
             {/* Desktop categories - centered */}
             <ul className="hidden items-center gap-1 lg:flex">
-              {navLinks.map((link) => (
+              {headerNavLinks.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
@@ -216,7 +211,7 @@ export default function Header() {
       {menuOpen && (
         <div className="bg-white border-t border-gray-200 px-4 pb-4 lg:hidden">
           <ul className="flex flex-col gap-1 pt-2">
-            {navLinks.map((link) => (
+            {headerNavLinks.map((link) => (
               <li key={link.label}>
                 <a
                   href={link.href}
