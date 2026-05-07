@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   title: "Centro Distribuciones | Distribuidor de Material Eléctrico e Industrial",
   description:
     "Distribuidor mayorista de material eléctrico e industrial. Automatización, protección, iluminación y cables. Envíos a todo el país.",
+  icons: {
+    icon: "/logos/LOGO-CENTRO-DISTRI-CD.png",
+  },
 };
 
 export default function RootLayout({
