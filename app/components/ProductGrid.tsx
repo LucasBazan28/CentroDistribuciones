@@ -66,7 +66,7 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
       {products.map((product, index) => (
         <div
           key={`${index}-${product.id}`}
-          className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all hover:-translate-y-1 hover:shadow-lg"
+          className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
         >
           {/* Product image placeholder */}
           <div
@@ -86,12 +86,6 @@ export default function ProductGrid({ products, isLoading = false }: ProductGrid
               </div>
             )}
             <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-              {/*<button
-                className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
-                aria-label="Ver detalle"
-              >
-                <Eye size={16} />
-              </button> */}
               <button
                 onClick={() => handleAddToCart(product)}
                 className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"

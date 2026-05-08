@@ -6,7 +6,8 @@ import SearchBar from "@/app/components/SearchBar"
 import FilterPanel, { FilterState } from "@/app/components/FilterPanel"
 import ProductGrid from "@/app/components/ProductGrid"
 import { useExchangeRate } from "@/app/lib/exchangeRateContext"
-import { ChevronUp } from "lucide-react"
+
+import { ChevronUp, Loader } from "lucide-react"
 import { fetchAllProducts, extractFilters } from "@/app/lib/productHelpers"
 import { Product, Category, Brand } from "@/app/lib/types"
 
@@ -37,7 +38,7 @@ export default function ProductsPage() {
     const loadProducts = async () => {
       // Get search term from URL first
       const searchParam = searchParams.get("search")
-      if (searchParam) {
+      if (searchParam !== null) {
         setSearchTerm(searchParam)
       }
 
@@ -199,7 +200,7 @@ export default function ProductsPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
-      {/* Sticky Search Section */}
+      {/* Sticky Search Section
       <div className="sticky top-0 z-40 bg-white shadow-md">
         <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
           <SearchBar
@@ -209,7 +210,7 @@ export default function ProductsPage() {
             initialValue={searchTerm}
           />
         </div>
-      </div>
+      </div>*/}
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
@@ -246,7 +247,12 @@ export default function ProductsPage() {
               <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
                 <div>
                   Se encontraron <span className="font-semibold">{filteredProducts.length}</span> productos
-                  {isLoadingAll && <span className="ml-2 text-gray-500">(cargando todos...)</span>}
+                  {isLoadingAll && 
+                    <div>
+                      <span className="ml-2 text-gray-500">(Cargando todos...)</span>
+                      <Loader className="ml-2 inline-block animate-spin text-gray-400" size={16} />
+                    </div>
+                  }
                 </div>
                 {totalPages > 1 && (
                   <div className="text-xs text-gray-500">
@@ -288,7 +294,8 @@ export default function ProductsPage() {
             {/* Loading indicator for background fetch */}
             {isLoadingAll && allProducts.length > 0 && (
               <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-xs text-blue-700">
-                Cargando más productos en segundo plano...
+                <Loader className="inline-block animate-spin text-gray-400" size={16} />
+                <span className="ml-2">Cargando más productos en segundo plano...</span>
               </div>
             )}
           </div>

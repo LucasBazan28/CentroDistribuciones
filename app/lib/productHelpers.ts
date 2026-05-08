@@ -19,7 +19,7 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void, s
       params.set("public", "true")
       params.set("offset", offset.toString())
       params.set("limit", pageSize.toString())
-      if (searchTerm) {
+      if (searchTerm?.trim()) {
         params.set("search", searchTerm)
       }
 
