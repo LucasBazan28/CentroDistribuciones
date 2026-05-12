@@ -76,6 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Load from sessionStorage on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -89,6 +90,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Save to sessionStorage whenever cart changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
     } catch (error) {

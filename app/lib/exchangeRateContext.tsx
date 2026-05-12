@@ -26,6 +26,7 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     // Sincronizar currency desde localStorage solo después de montar en cliente
     const savedCurrency = localStorage.getItem("selectedCurrency") as Currency | null;
     if (savedCurrency && (savedCurrency === "USD" || savedCurrency === "ARS")) {

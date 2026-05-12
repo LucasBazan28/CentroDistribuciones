@@ -6,12 +6,12 @@ import Image from "next/image";
 
 const brands = [
   { name: "Zoloda", logo: "/logos/LOGO-ZOLODA.png" },
-  { name: "Weg", logo: "/logos/LOGO-WEG.jpeg" },
+  { name: "Weg", logo: "/logos/LOGO-WEG.png" },
   { name: "WENTINCK", logo: "/logos/LOGO-WTK.png" },
   { name: "TECNOBOX", logo: "/logos/LOGO-TECNOBOX-RGB-VERT.png" },
   { name: "SCAME", logo: "/logos/LOGO-SCAME.jpeg" },
   { name: "HellermannTyton", logo: "/logos/LOGO-HELLERMANN.jpeg" },
-  { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA-fondo-blanco.jpeg" },
+  { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA.png" },
 ];
 
 const slides = [
@@ -59,9 +59,10 @@ export default function HeroBanner() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(next, 5000);
+    const duration = slides[current].isBrandsSlide ? 8000 : 5000;
+    const timer = setInterval(next, duration);
     return () => clearInterval(timer);
-  }, [next]);
+  }, [next, current, slides]);
 
   return (
     <section className="relative w-full overflow-hidden">
@@ -94,7 +95,7 @@ export default function HeroBanner() {
                     {brands.map((brand) => (
                       <div
                         key={brand.name}
-                        className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm p-4 transition-all hover:bg-white/20"
+                        className="flex flex-col items-center justify-center rounded-lg bg-gray-200 backdrop-blur-sm p-4 transition-all hover:bg-gray-300"
                       >
                         <div className="flex h-20 w-20 items-center justify-center">
                           <Image
@@ -105,7 +106,7 @@ export default function HeroBanner() {
                             className="object-contain"
                           />
                         </div>
-                        <span className="mt-2 text-xs font-medium text-white/80 text-center">
+                        <span className="mt-2 text-xs font-medium text-primary text-center">
                           {brand.name}
                         </span>
                       </div>
