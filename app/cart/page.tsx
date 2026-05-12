@@ -1,12 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
-import CartPageContent from "@/app/components/CartPageContent";
+import dynamic from "next/dynamic";
+
+const CartPageServer = dynamic(() => import("./CartPageServer"), { ssr: false });
 
 export default function CartPage() {
-  return (
-    <Suspense fallback={<div>Cargando carrito...</div>}>
-      <CartPageContent />
-    </Suspense>
-  );
+  return <CartPageServer />;
 }

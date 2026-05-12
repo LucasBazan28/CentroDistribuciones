@@ -1,9 +1,11 @@
-import RegisterForm from "@/app/components/RegisterForm";
+"use client";
+
+import dynamic from "next/dynamic";
+
+const RegisterPageContent = dynamic(() => import("./RegisterPageContent"), {
+  ssr: false,
+});
 
 export default function RegisterPage() {
-  return (
-    <main>
-      <RegisterForm />
-    </main>
-  );
+  return <RegisterPageContent />;
 }
