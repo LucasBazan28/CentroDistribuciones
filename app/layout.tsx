@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Archivo_Black, Archivo } from "next/font/google";
 // @ts-ignore
 import "./globals.css";
-import dynamic from "next/dynamic";
+import HeaderWrapper from "./components/HeaderWrapper";
 import Footer from "./components/Footer";
-
-const Header = dynamic(() => import("./components/Header"), { ssr: false });
 import ToastContainer from "./components/Toast";
 import { CartProvider } from "./lib/cartContext";
 import { ToastProvider } from "./lib/toastProvider";
@@ -44,7 +42,7 @@ export default function RootLayout({
         <ToastProvider>
           <ExchangeRateProvider>
             <CartProvider>
-              <Header />
+            <HeaderWrapper />
               {children}
               <Footer />
               <ToastContainer />
