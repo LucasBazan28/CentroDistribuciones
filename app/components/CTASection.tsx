@@ -32,10 +32,10 @@ export default function CTASection() {
               Envianos tu lista de materiales y te cotizamos en el día.
             </p>
             <a
-              href="mailto:ventas@centrodistribuciones.com.ar"
+              href="mailto:distribucionzoloda.bb@gmail.com.ar"
               className="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-dark"
             >
-              ventas@centrodistribuciones.com.ar
+              distribucionzoloda.bb@gmail.com.ar
             </a>
           </div>
 
@@ -50,10 +50,10 @@ export default function CTASection() {
               Nuestro equipo comercial te asesora de lunes a viernes.
             </p>
             <a
-              href="tel:08102205777"
+              href="tel:+54-9-291-643-1275"
               className="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-dark"
             >
-              0810-220-5777
+              +54-9-291-643-1275
             </a>
           </div>
 
@@ -68,7 +68,7 @@ export default function CTASection() {
               Abrí tu cuenta de cliente y accedé a precios preferenciales.
             </p>
             <a
-              href="#"
+              href="/login"
               className="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-dark"
             >
               Registrate aquí
