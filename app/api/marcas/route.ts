@@ -167,11 +167,10 @@ export async function PUT(request: Request) {
       )
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("marcas")
       .update({ nombre: nombre.trim() })
       .eq("id", id)
-      .select()
 
     if (error) {
       console.error("Database error:", error)
@@ -181,7 +180,7 @@ export async function PUT(request: Request) {
       )
     }
 
-    return NextResponse.json(data[0], { status: 200 })
+    return NextResponse.json({ id, nombre: nombre.trim() }, { status: 200 })
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(

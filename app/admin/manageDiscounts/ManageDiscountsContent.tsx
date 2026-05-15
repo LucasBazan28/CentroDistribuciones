@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser"
 import { AlertCircle, CheckCircle, Loader2, Plus, Trash2, Edit2, X, Save } from "lucide-react"
 import Link from "next/link"
-
+import BackToAdminButton from "@/app/components/BackToAdminButton"
 interface Marca {
   id: number
   nombre: string
@@ -107,6 +107,12 @@ export default function ManageDiscountsPage() {
       return
     }
 
+    const descuentoValue = parseFloat(formData.descuento)
+    if (descuentoValue < 0 || descuentoValue > 100) {
+      setError("El descuento debe estar entre 0% y 100%")
+      return
+    }
+
     try {
       setSubmitting(true)
 
@@ -121,7 +127,7 @@ export default function ManageDiscountsPage() {
         body: JSON.stringify({
           ...(editingId && { id: editingId }),
           nombre: formData.nombre,
-          descuento: parseFloat(formData.descuento),
+          descuento: descuentoValue,
           marca_id: parseInt(formData.marca_id),
         }),
       })
@@ -236,6 +242,7 @@ export default function ManageDiscountsPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <BackToAdminButton />
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-4xl font-bold text-gray-900">Administrar Descuentos</h1>
             {!showForm && (
@@ -338,6 +345,7 @@ export default function ManageDiscountsPage() {
                   type="number"
                   step="0.01"
                   min="0"
+                  max="100"
                   value={formData.descuento}
                   onChange={handleChange}
                   required
