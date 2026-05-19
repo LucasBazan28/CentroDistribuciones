@@ -71,19 +71,20 @@ Timestamp: ${new Date().toISOString()}
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const result = await resend.emails.send({
-      from: 'noreply@centrodistribuciones.com.ar',
-      to: 'lucasbazancastaing1@gmail.com', //disribucionzoloda.bb@gmail.com
+    const {data, error} = await resend.emails.send({
+      from: 'noreply@centrodistribuciones.ar',
+      to: 'disribucionzoloda.bb@gmail.com', //disribucionzoloda.bb@gmail.com
       replyTo: body.email,
       subject: `Nuevo Presupuesto - ${body.nombre}`,
       text: emailContent,
       html: `<pre>${emailContent}</pre>`,
     });
 
-
-    // For now, just log and return success
-    console.log("Email content would be sent to: ventas@centrodistribuciones.com.ar");
-    console.log(emailContent);
+    console.log("RESEND DATA:", data);
+    console.log("RESEND ERROR:", error);
+    if (error) {
+      throw new Error(error.message);
+    }
 
     return NextResponse.json(
       {
