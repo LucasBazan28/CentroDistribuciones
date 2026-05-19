@@ -92,7 +92,7 @@ export default function CartPageContent() {
                         <p className="mt-1 text-xs text-gray-500">{item.marcas.nombre}</p>
                       )}
                       <p className="mt-2 text-base font-bold text-gray-900 sm:text-lg">
-                        {formatPrice(item.precio_venta)}
+                        {formatPrice(convertCurrency(item.precio_venta))}
                       </p>
                     </div>
 
@@ -130,7 +130,7 @@ export default function CartPageContent() {
                           Eliminar
                         </button>
                         <p className="text-xs text-gray-500 sm:text-sm">
-                          Subtotal: {formatPrice(item.precio_venta * item.quantity)}
+                          Subtotal: {formatPrice(convertCurrency(item.precio_venta * item.quantity))}
                         </p>
                       </div>
                     </div>

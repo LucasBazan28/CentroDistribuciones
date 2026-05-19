@@ -1,7 +1,7 @@
 import NewProductForm from "@/app/components/NewProductForm"
 import { ArrowLeft, PackagePlus } from "lucide-react"
 import Link from "next/link"
-
+import BackToAdminButton from "@/app/components/BackToAdminButton"
 export default function NewProductPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -9,15 +9,7 @@ export default function NewProductPage() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary-dark transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver al Admin
-              </Link>
-            </div>
+            <BackToAdminButton />
             <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
                 <PackagePlus className="h-6 w-6 text-white" />

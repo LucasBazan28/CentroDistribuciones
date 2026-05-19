@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import { ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import BackToAdminButton from "@/app/components/BackToAdminButton"
 
 interface Marca {
   id: number
@@ -57,15 +58,7 @@ export default async function ManageStockPage() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary-dark transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver al Admin
-              </Link>
-            </div>
+          <BackToAdminButton />
             <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
                 <Package className="h-6 w-6 text-white" />

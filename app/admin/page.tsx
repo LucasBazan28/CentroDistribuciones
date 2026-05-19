@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Package, Home, Percent } from "lucide-react";
+import { Plus, Package, Home, Percent, Tag, Folder } from "lucide-react";
 
 export default function AdminPage() {
   return (
@@ -50,6 +50,32 @@ export default function AdminPage() {
             />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrar Descuentos</h2>
             <p className="text-gray-600">Organiza grupos de descuento por marca</p>
+          </Link>
+
+          {/* Manage Brands Card */}
+          <Link
+            href="/admin/manageBrands"
+            className="group h-48 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary p-8 flex flex-col justify-center items-center text-center hover:scale-105"
+          >
+            <Tag
+              size={48}
+              className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrar Marcas</h2>
+            <p className="text-gray-600">Agrega, edita o elimina marcas</p>
+          </Link>
+
+          {/* Manage Categories Card */}
+          <Link
+            href="/admin/manageCategories"
+            className="group h-48 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary p-8 flex flex-col justify-center items-center text-center hover:scale-105"
+          >
+            <Folder
+              size={48}
+              className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrar Categorías</h2>
+            <p className="text-gray-600">Organiza categorías por marca</p>
           </Link>
         </div>
 

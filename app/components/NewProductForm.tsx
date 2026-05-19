@@ -23,6 +23,12 @@ interface GrupoDescuento {
   marca_id: number
 }
 
+interface Categoria {
+  id: number
+  nombre: string
+  marca_id: number | null
+}
+
 export default function NewProductForm() {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -32,6 +38,8 @@ export default function NewProductForm() {
   const [marcas, setMarcas] = useState<Marca[]>([])
   const [gruposDescuento, setGruposDescuento] = useState<GrupoDescuento[]>([])
   const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<GrupoDescuento[]>([])
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [categoriasFiltradas, setCategoriasFiltradas] = useState<Categoria[]>([])
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
@@ -48,6 +56,7 @@ export default function NewProductForm() {
     observacion: "",
     marca_id: "",
     grupo_descuento_id: "",
+    categoria_id: "",
     imageURL: "",
   })
 
@@ -57,29 +66,21 @@ export default function NewProductForm() {
         setLoading(true)
         const supabase = createSupabaseBrowserClient()
 
-        // Log current user
-        const { data: { user } } = await supabase.auth.getUser()
-        console.log("Current user:", user?.id)
-
         const monedasRes = await supabase.from("monedas").select("*").order("id")
-        console.log("Monedas full response:", monedasRes)
-
-        if (monedasRes.error) {
-          console.error("Monedas error:", monedasRes.error)
-          throw monedasRes.error
-        }
-
+        if (monedasRes.error) throw monedasRes.error
         setMonedas(monedasRes.data || [])
 
         const marcasRes = await supabase.from("marcas").select("*").order("nombre")
-        console.log("Marcas full response:", marcasRes)
         if (marcasRes.error) throw marcasRes.error
         setMarcas(marcasRes.data || [])
 
         const gruposRes = await supabase.from("grupo_descuento").select("*").order("nombre")
-        console.log("Grupos descuento full response:", gruposRes)
         if (gruposRes.error) throw gruposRes.error
         setGruposDescuento(gruposRes.data || [])
+
+        const categoriasRes = await supabase.from("categorias").select("*").order("nombre")
+        if (categoriasRes.error) throw categoriasRes.error
+        setCategorias(categoriasRes.data || [])
       } catch (err) {
         const message = err instanceof Error ? err.message : "Error loading data"
         setError(`Failed to load form data: ${message}`)
@@ -104,9 +105,11 @@ export default function NewProductForm() {
       observacion: "",
       marca_id: "",
       grupo_descuento_id: "",
+      categoria_id: "",
       imageURL: "",
     })
     setGruposDescuentoFiltrados([])
+    setCategoriasFiltradas([])
     setImageFile(null)
     setImagePreview(null)
     setImageUploadError(null)
@@ -149,10 +152,19 @@ export default function NewProductForm() {
       const filtered = value ? gruposDescuento.filter(g => g.marca_id === Number(value)) : []
       setGruposDescuentoFiltrados(filtered)
 
+      // Filter categories by selected brand and always include "Otros" (id=14)
+      let filteredCats: Categoria[] = []
+      if (value) {
+        const marcaId = Number(value)
+        filteredCats = categorias.filter(c => c.marca_id === marcaId || c.id === 14)
+      }
+      setCategoriasFiltradas(filteredCats)
+
       setFormData((prev) => ({
         ...prev,
         [name]: value,
-        grupo_descuento_id: "", // Reset discount group when brand changes
+        grupo_descuento_id: "",
+        categoria_id: "", // Reset category when brand changes
       }))
     } else {
       setFormData((prev) => ({
@@ -417,16 +429,17 @@ export default function NewProductForm() {
 
           <div>
             <label htmlFor="marca_id" className="block text-sm font-medium text-gray-700 mb-2">
-              Marca
+              Marca <span className="text-red-500">*</span>
             </label>
             <select
               id="marca_id"
               name="marca_id"
               value={formData.marca_id}
               onChange={handleChange}
+              required
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">Sin marca</option>
+              <option value="">Seleccionar marca</option>
               {marcas.map((marca) => (
                 <option key={marca.id} value={marca.id}>
                   {marca.nombre}
@@ -437,8 +450,30 @@ export default function NewProductForm() {
         </div>
 
         <div>
+          <label htmlFor="categoria_id" className="block text-sm font-medium text-gray-700 mb-2">
+            Categoría <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="categoria_id"
+            name="categoria_id"
+            value={formData.categoria_id}
+            onChange={handleChange}
+            disabled={!formData.marca_id}
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+          >
+            <option value="">{formData.marca_id ? "Seleccionar categoría" : "Selecciona una marca primero"}</option>
+            {categoriasFiltradas.map((categoria) => (
+              <option key={categoria.id} value={categoria.id}>
+                {categoria.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <label htmlFor="grupo_descuento_id" className="block text-sm font-medium text-gray-700 mb-2">
-            Grupo Descuento <span className="text-red-500">*</span>
+            Grupo Descuento
           </label>
           <select
             id="grupo_descuento_id"
@@ -446,10 +481,9 @@ export default function NewProductForm() {
             value={formData.grupo_descuento_id}
             onChange={handleChange}
             disabled={!formData.marca_id}
-            required
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
           >
-            <option value="">{formData.marca_id ? "Seleccionar grupo de descuento" : "Selecciona una marca primero"}</option>
+            <option value="">{formData.marca_id ? "Seleccionar grupo de descuento (opcional)" : "Selecciona una marca primero"}</option>
             {gruposDescuentoFiltrados.map((grupo) => (
               <option key={grupo.id} value={grupo.id}>
                 {grupo.nombre} ({grupo.descuento}%)

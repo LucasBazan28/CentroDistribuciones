@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react"
 import { uploadImageToCloudinary, validateImageFile } from "@/lib/imageUpload"
-import { AlertCircle, Eye, Edit2, X, Save, Loader, Image as ImageIcon } from "lucide-react"
+import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser"
+import { AlertCircle, Edit2, X, Save, Loader, Image as ImageIcon, Trash2 } from "lucide-react"
 
 interface Articulo {
   id: number
@@ -17,7 +18,7 @@ interface Articulo {
   observacion: string | null
   marca_id: number | null
   activo: boolean
-  grupo_descuento_id: number
+  grupo_descuento_id: number | null
   categoria_id: number | null
   imageURL?: string | null
   marcas?: { nombre: string } | null
@@ -43,6 +44,11 @@ export default function StockTable({ initialData }: StockTableProps) {
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
+  const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<any[]>([])
+  const [categoriasFiltradas, setCategoriasFiltradas] = useState<any[]>([])
+  const [allGruposDescuento, setAllGruposDescuento] = useState<any[]>([])
+  const [allCategorias, setAllCategorias] = useState<any[]>([])
+  const [allMarcas, setAllMarcas] = useState<any[]>([])
   const editFormRef = useRef<HTMLDivElement>(null)
 
   // Extract unique marcas and categorias
@@ -113,10 +119,47 @@ export default function StockTable({ initialData }: StockTableProps) {
     }
   }, [editingId])
 
+  // Load grupos descuento and categorias for editing
+  useEffect(() => {
+    const loadDropdownData = async () => {
+      try {
+        const supabase = createSupabaseBrowserClient()
+
+        const gruposRes = await supabase.from("grupo_descuento").select("*").order("nombre")
+        if (gruposRes.error) throw gruposRes.error
+        setAllGruposDescuento(gruposRes.data || [])
+
+        const categoriasRes = await supabase.from("categorias").select("*").order("nombre")
+        if (categoriasRes.error) throw categoriasRes.error
+        setAllCategorias(categoriasRes.data || [])
+
+        const marcasRes = await supabase.from("marcas").select("*").order("nombre")
+        if (marcasRes.error) throw marcasRes.error
+        setAllMarcas(marcasRes.data || [])
+      } catch (err) {
+        console.error("Failed to load dropdown data:", err)
+      }
+    }
+
+    loadDropdownData()
+  }, [])
+
   const handleEdit = (articulo: Articulo) => {
     setEditingId(articulo.id)
     setEditingData({ ...articulo })
     setError(null)
+
+    // Filter grupos descuento and categorias by brand
+    if (articulo.marca_id) {
+      const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === articulo.marca_id)
+      setGruposDescuentoFiltrados(filteredGrupos)
+
+      const filteredCats = allCategorias.filter(c => c.marca_id === articulo.marca_id || c.id === 14)
+      setCategoriasFiltradas(filteredCats)
+    } else {
+      setGruposDescuentoFiltrados([])
+      setCategoriasFiltradas([])
+    }
   }
 
   const handleCancelEdit = () => {
@@ -126,6 +169,26 @@ export default function StockTable({ initialData }: StockTableProps) {
     setEditImageFile(null)
     setEditImagePreview(null)
     setImageUploadError(null)
+    setGruposDescuentoFiltrados([])
+    setCategoriasFiltradas([])
+  }
+
+  const handleEditMarcaChange = (newMarcaId: number | null) => {
+    if (!editingData) return
+
+    const updatedData = { ...editingData, marca_id: newMarcaId }
+    setEditingData(updatedData)
+
+    if (newMarcaId) {
+      const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === newMarcaId)
+      setGruposDescuentoFiltrados(filteredGrupos)
+
+      const filteredCats = allCategorias.filter(c => c.marca_id === newMarcaId || c.id === 14)
+      setCategoriasFiltradas(filteredCats)
+    } else {
+      setGruposDescuentoFiltrados([])
+      setCategoriasFiltradas([])
+    }
   }
 
   const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,6 +279,35 @@ export default function StockTable({ initialData }: StockTableProps) {
       setImageUploadError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error updating product")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDelete = async (articulo: Articulo) => {
+    if (!confirm(`¿Está seguro de que desea eliminar el producto "${articulo.referencia}"?`)) {
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/articulos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: articulo.id }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to delete product")
+      }
+
+      // Remove product from data
+      setData(data.filter(item => item.id !== articulo.id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error deleting product")
     } finally {
       setIsLoading(false)
     }
@@ -389,10 +481,12 @@ export default function StockTable({ initialData }: StockTableProps) {
                   <td className="px-4 py-3 text-center">
                     <div className="flex justify-center gap-2">
                       <button
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
-                        title="Ver detalles"
+                        onClick={() => handleDelete(articulo)}
+                        disabled={isLoading}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors disabled:opacity-50"
+                        title="Eliminar"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleEdit(articulo)}
@@ -503,6 +597,62 @@ export default function StockTable({ initialData }: StockTableProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
               />
+            </div>
+
+            {/* Marca */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Marca <span className="text-red-500">*</span></label>
+              <select
+                value={editingData.marca_id || ""}
+                onChange={(e) => handleEditMarcaChange(e.target.value ? Number(e.target.value) : null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+                required
+              >
+                <option value="">Seleccionar marca</option>
+                {allMarcas.map((marca) => (
+                  <option key={marca.id} value={marca.id}>
+                    {marca.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Categoría */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría <span className="text-red-500">*</span></label>
+              <select
+                value={editingData.categoria_id || ""}
+                onChange={(e) => setEditingData({ ...editingData, categoria_id: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                disabled={isLoading || !editingData.marca_id}
+                required
+              >
+                <option value="">{editingData.marca_id ? "Seleccionar categoría" : "Selecciona una marca primero"}</option>
+                {categoriasFiltradas.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Grupo Descuento */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Grupo Descuento</label>
+              <select
+                value={editingData.grupo_descuento_id || ""}
+                onChange={(e) => setEditingData({ ...editingData, grupo_descuento_id: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                disabled={isLoading || !editingData.marca_id}
+              >
+                <option value="">{editingData.marca_id ? "Seleccionar grupo de descuento (opcional)" : "Selecciona una marca primero"}</option>
+                {gruposDescuentoFiltrados.map((grupo) => (
+                  <option key={grupo.id} value={grupo.id}>
+                    {grupo.nombre} ({grupo.descuento}%)
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Precio Unitario */}
