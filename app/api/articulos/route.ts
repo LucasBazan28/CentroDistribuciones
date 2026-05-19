@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !grupo_descuento_id) {
+    if (!referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -330,7 +330,7 @@ export async function PUT(request: Request) {
     } = body
 
     // Validate required fields
-    if (!id || !referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !grupo_descuento_id) {
+    if (!id || !referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -425,6 +425,75 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(completeData, { status: 200 })
+  } catch (error) {
+    console.error("API error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createSupabaseServerClient()
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check if user is admin
+    const { data: profile, error: profileError } = await supabase
+      .from("perfiles")
+      .select("rol")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profileError || !profile || profile.rol !== "admin") {
+      return NextResponse.json({ error: "Forbidden: Only admins can delete products" }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { id } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      )
+    }
+
+    // Check if product exists
+    const { data: existingProduct, error: checkError } = await supabase
+      .from("articulos")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle()
+
+    if (checkError || !existingProduct) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      )
+    }
+
+    // Delete product from database
+    const { error } = await supabase
+      .from("articulos")
+      .delete()
+      .eq("id", id)
+
+    if (error) {
+      console.error("Database error:", error)
+      return NextResponse.json(
+        { error: error.message || "Failed to delete product" },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ message: "Product deleted successfully" }, { status: 200 })
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json(
