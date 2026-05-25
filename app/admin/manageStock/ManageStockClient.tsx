@@ -20,13 +20,13 @@ interface Articulo {
   stock_minimo: number
   stock: number
   observacion: string | null
-  marca_id: number | null
+  marca_id: number
   activo: boolean
-  grupo_descuento_id: number
-  categoria_id: number | null
-  marcas?: { nombre: string } | null
-  grupo_descuento?: { nombre: string }
-  categorias?: { nombre: string } | null
+  grupo_descuento_id: number | null
+  categoria_id: number
+  marcas?: { nombre: string }
+  grupo_descuento?: { nombre: string } | null
+  categorias?: { nombre: string }
 }
 
 interface ManageStockClientProps {

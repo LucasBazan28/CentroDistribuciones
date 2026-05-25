@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
+    if (!referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || moneda_id === undefined || moneda_id === null || marca_id === undefined || marca_id === null || categoria_id === undefined || categoria_id === null) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
