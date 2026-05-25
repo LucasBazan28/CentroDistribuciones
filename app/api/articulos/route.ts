@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
+    if (!referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -69,6 +69,13 @@ export async function POST(request: Request) {
       )
     }
 
+    if (grupo_descuento_id && isNaN(parseInt(grupo_descuento_id))) {
+      return NextResponse.json(
+        { error: "Grupo descuento ID must be a valid number" },
+        { status: 400 }
+      )
+    }
+
     // Insert into database
     const { data, error } = await supabase
       .from("articulos")
@@ -83,9 +90,9 @@ export async function POST(request: Request) {
           stock_minimo: parseInt(stock_minimo),
           stock: parseInt(stock),
           observacion: observacion || null,
-          marca_id: marca_id ? parseInt(marca_id) : null,
-          grupo_descuento_id: parseInt(grupo_descuento_id),
-          categoria_id: categoria_id ? parseInt(categoria_id) : null,
+          marca_id: parseInt(marca_id),
+          grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
+          categoria_id: parseInt(categoria_id),
           imageURL: imageURL || null,
           ...(activo !== undefined && { activo }),
         },
@@ -330,7 +337,7 @@ export async function PUT(request: Request) {
     } = body
 
     // Validate required fields
-    if (!id || !referencia || !cc || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
+    if (!id || !referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -354,6 +361,13 @@ export async function PUT(request: Request) {
     if (stock < 0) {
       return NextResponse.json(
         { error: "Stock cannot be negative" },
+        { status: 400 }
+      )
+    }
+
+    if (grupo_descuento_id && isNaN(parseInt(grupo_descuento_id))) {
+      return NextResponse.json(
+        { error: "Grupo descuento ID must be a valid number" },
         { status: 400 }
       )
     }
@@ -385,9 +399,9 @@ export async function PUT(request: Request) {
         stock_minimo: parseInt(stock_minimo),
         stock: parseInt(stock),
         observacion: observacion || null,
-        marca_id: marca_id ? parseInt(marca_id) : null,
-        grupo_descuento_id: parseInt(grupo_descuento_id),
-        categoria_id: categoria_id ? parseInt(categoria_id) : null,
+        marca_id: parseInt(marca_id),
+        grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
+        categoria_id: parseInt(categoria_id),
         imageURL: imageURL || null,
         ...(activo !== undefined && { activo }),
       })
