@@ -1,22 +1,6 @@
-import { ShoppingCart, Eye } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
 import { Product } from "@/app/lib/types";
 import FeaturedProductsList from "./FeaturedProductsList";
-
-const gradients = [
-  "bg-gradient-to-br from-blue-100 to-blue-200",
-  "bg-gradient-to-br from-green-100 to-green-200",
-  "bg-gradient-to-br from-amber-100 to-amber-200",
-  "bg-gradient-to-br from-red-100 to-red-200",
-  "bg-gradient-to-br from-purple-100 to-purple-200",
-  "bg-gradient-to-br from-cyan-100 to-cyan-200",
-  "bg-gradient-to-br from-gray-100 to-gray-200",
-  "bg-gradient-to-br from-yellow-100 to-yellow-200",
-];
-
-function getGradientForProduct(id: number): string {
-  return gradients[id % gradients.length];
-}
 
 async function fetchFeaturedProducts(): Promise<Product[]> {
   try {
@@ -63,7 +47,7 @@ export default async function FeaturedProducts() {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {products.length > 0 ? (
             <FeaturedProductsList products={products} />
           ) : (
