@@ -54,7 +54,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       {/* Product Image */}
       <div className="flex items-center justify-center">
         <div
-          className={`relative h-96 w-full overflow-hidden rounded-2xl ${getGradientForProduct(
+          className={`relative min-h-screen w-full overflow-hidden rounded-2xl ${getGradientForProduct(
             product.id
           )}`}
         >
