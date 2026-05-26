@@ -68,7 +68,7 @@ export async function fetchProductById(id: number) {
   try {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
     const response = await fetch(`${baseUrl}/api/articulos/${id}?public=true`)
     if (!response.ok) {
       if (response.status === 404) {
@@ -90,7 +90,7 @@ export async function fetchRelatedProducts(product: any, limit: number = 4) {
   try {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
     const relatedProducts: any[] = []
 
     // Fetch products from same category
