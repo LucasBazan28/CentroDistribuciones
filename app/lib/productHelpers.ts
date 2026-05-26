@@ -62,21 +62,46 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void, s
 }
 
 /**
- * Fetches a single product by ID from the public API
+ * Fetches a single product by ID directly from Supabase
  */
 export async function fetchProductById(id: number) {
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
-    const response = await fetch(`${baseUrl}/api/articulos/${id}?public=true`)
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null
+    const { createServerClient } = await import('@supabase/ssr')
+    const { cookies } = await import('next/headers')
+
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          },
+        },
       }
-      throw new Error(`Failed to fetch product: ${response.status}`)
+    )
+
+    const { data, error } = await supabase
+      .from("articulos")
+      .select(
+        "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+      )
+      .eq("id", id)
+      .eq("activo", true)
+      .maybeSingle()
+
+    if (error) {
+      console.error(`Error fetching product ${id}:`, error)
+      return null
     }
-    return await response.json()
+
+    return data || null
   } catch (error) {
     console.error(`Error fetching product ${id}:`, error)
     return null
@@ -88,29 +113,55 @@ export async function fetchProductById(id: number) {
  */
 export async function fetchRelatedProducts(product: any, limit: number = 4) {
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+    const { createServerClient } = await import('@supabase/ssr')
+    const { cookies } = await import('next/headers')
+
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
+
     const relatedProducts: any[] = []
 
-    // Fetch products from same category
     if (product.categoria_id) {
-      const response = await fetch(
-        `${baseUrl}/api/articulos?public=true&category=${product.categoria_id}&limit=${limit}`
-      )
-      if (response.ok) {
-        const data = await response.json()
+      const { data } = await supabase
+        .from("articulos")
+        .select(
+          "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+        )
+        .eq("categoria_id", product.categoria_id)
+        .eq("activo", true)
+        .limit(limit)
+
+      if (data) {
         relatedProducts.push(...data.filter((p: any) => p.id !== product.id))
       }
     }
 
-    // If we don't have enough, try to fetch from same brand
     if (relatedProducts.length < limit && product.marca_id) {
-      const response = await fetch(
-        `${baseUrl}/api/articulos?public=true&brand=${product.marca_id}&limit=${limit}`
-      )
-      if (response.ok) {
-        const data = await response.json()
+      const { data } = await supabase
+        .from("articulos")
+        .select(
+          "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+        )
+        .eq("marca_id", product.marca_id)
+        .eq("activo", true)
+        .limit(limit)
+
+      if (data) {
         data.forEach((p: any) => {
           if (p.id !== product.id && !relatedProducts.find((rp) => rp.id === p.id)) {
             relatedProducts.push(p)
