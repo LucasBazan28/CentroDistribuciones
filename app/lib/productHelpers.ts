@@ -64,7 +64,7 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void, s
 /**
  * Fetches a single product by ID directly from Supabase
  */
-export async function fetchProductById(id: number) {
+export async function fetchProductById(id: number): Promise<any> {
   try {
     const { createServerClient } = await import('@supabase/ssr')
     const { cookies } = await import('next/headers')
@@ -111,7 +111,7 @@ export async function fetchProductById(id: number) {
 /**
  * Fetches products related to a given product (same category or brand)
  */
-export async function fetchRelatedProducts(product: any, limit: number = 4) {
+export async function fetchRelatedProducts(product: any, limit: number = 4): Promise<any[]> {
   try {
     const { createServerClient } = await import('@supabase/ssr')
     const { cookies } = await import('next/headers')

@@ -6,9 +6,9 @@ export interface Product {
   stock: number;
   categoria_id: number | null;
   marca_id: number | null;
-  categorias?: { nombre: string } | { nombre: string }[] | null;
-  marcas?: { nombre: string } | { nombre: string }[] | null;
-  grupo_descuento?: { nombre: string; descuento: number } | { nombre: string; descuento: number }[] | null;
+  categorias?: { nombre: string } | null;
+  marcas?: { nombre: string } | null;
+  grupo_descuento?: { nombre: string; descuento: number } | null;
   precio_venta: number;
   imageURL?: string | null;
 }
