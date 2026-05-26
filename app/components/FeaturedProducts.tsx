@@ -24,7 +24,7 @@ async function fetchFeaturedProducts(): Promise<Product[]> {
 
     const { data, error } = await supabase
       .from("articulos")
-      .select("*, categorias(nombre)")
+      .select("*, categorias(nombre), imageURL")
       .eq("activo", true)
       .order("created_at", { ascending: false })
       .range(0, 7);
