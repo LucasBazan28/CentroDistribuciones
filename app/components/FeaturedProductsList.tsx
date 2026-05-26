@@ -6,6 +6,7 @@ import { Product } from "@/app/lib/types";
 import { useCart } from "@/app/lib/cartContext";
 import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useToast } from "@/app/lib/toastProvider";
+import Link from "next/link";
 
 const gradients = [
   "bg-gradient-to-br from-blue-100 to-blue-200",
@@ -82,9 +83,9 @@ export default function FeaturedProductsList({ products }: FeaturedProductsListP
               <span className="text-lg font-bold text-gray-900">
                 {formatPrice(product.precio_venta)}
               </span>
-              <button className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
+              <Link href={`/products/${product.id}`} className="w-full rounded-lg bg-primary/10 px-3 py-1.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
                 Ver más
-              </button>
+              </Link>
             </div>
           </div>
         </div>
