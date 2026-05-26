@@ -23,8 +23,7 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void, s
         params.set("search", searchTerm)
       }
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      const response = await fetch(`${baseUrl}/api/articulos?${params.toString()}`)
+      const response = await fetch(`/api/articulos?${params.toString()}`)
       if (!response.ok) throw new Error("Error fetching products")
 
       const chunk = await response.json()
@@ -67,8 +66,7 @@ export async function fetchAllProducts(onProgress?: (products: any[]) => void, s
  */
 export async function fetchProductById(id: number) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-    const response = await fetch(`${baseUrl}/api/articulos/${id}?public=true`)
+    const response = await fetch(`/api/articulos/${id}?public=true`)
     if (!response.ok) {
       if (response.status === 404) {
         return null
@@ -88,12 +86,11 @@ export async function fetchProductById(id: number) {
 export async function fetchRelatedProducts(product: any, limit: number = 4) {
   try {
     const relatedProducts: any[] = []
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
     // Fetch products from same category
     if (product.categoria_id) {
       const response = await fetch(
-        `${baseUrl}/api/articulos?public=true&category=${product.categoria_id}&limit=${limit}`
+        `/api/articulos?public=true&category=${product.categoria_id}&limit=${limit}`
       )
       if (response.ok) {
         const data = await response.json()
@@ -104,7 +101,7 @@ export async function fetchRelatedProducts(product: any, limit: number = 4) {
     // If we don't have enough, try to fetch from same brand
     if (relatedProducts.length < limit && product.marca_id) {
       const response = await fetch(
-        `${baseUrl}/api/articulos?public=true&brand=${product.marca_id}&limit=${limit}`
+        `/api/articulos?public=true&brand=${product.marca_id}&limit=${limit}`
       )
       if (response.ok) {
         const data = await response.json()

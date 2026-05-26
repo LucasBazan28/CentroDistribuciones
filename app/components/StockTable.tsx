@@ -16,14 +16,14 @@ interface Articulo {
   stock_minimo: number
   stock: number
   observacion: string | null
-  marca_id: number | null
+  marca_id: number
   activo: boolean
   grupo_descuento_id: number | null
-  categoria_id: number | null
+  categoria_id: number
   imageURL?: string | null
-  marcas?: { nombre: string } | null
-  grupo_descuento?: { nombre: string }
-  categorias?: { nombre: string } | null
+  marcas?: { nombre: string }
+  grupo_descuento?: { nombre: string } | null
+  categorias?: { nombre: string }
 }
 
 interface StockTableProps {
@@ -174,7 +174,7 @@ export default function StockTable({ initialData }: StockTableProps) {
   }
 
   const handleEditMarcaChange = (newMarcaId: number | null) => {
-    if (!editingData) return
+    if (!editingData || newMarcaId === null) return
 
     const updatedData = { ...editingData, marca_id: newMarcaId }
     setEditingData(updatedData)
@@ -222,6 +222,16 @@ export default function StockTable({ initialData }: StockTableProps) {
 
   const handleSaveEdit = async () => {
     if (!editingData) return
+
+    if (!editingData.marca_id) {
+      setError("Marca es requerida")
+      return
+    }
+
+    if (!editingData.categoria_id) {
+      setError("Categoría es requerida")
+      return
+    }
 
     setIsLoading(true)
     setError(null)
@@ -623,7 +633,12 @@ export default function StockTable({ initialData }: StockTableProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Categoría <span className="text-red-500">*</span></label>
               <select
                 value={editingData.categoria_id || ""}
-                onChange={(e) => setEditingData({ ...editingData, categoria_id: e.target.value ? Number(e.target.value) : null })}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : null
+                  if (value !== null) {
+                    setEditingData({ ...editingData, categoria_id: value })
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                 disabled={isLoading || !editingData.marca_id}
                 required

@@ -6,6 +6,8 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import BackToAdminButton from "@/app/components/BackToAdminButton"
 
+export const dynamic = "force-dynamic";
+
 interface Marca {
   id: number
   nombre: string

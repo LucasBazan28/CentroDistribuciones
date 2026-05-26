@@ -6,6 +6,8 @@ import BrandsSection from "./components/BrandsSection";
 import CTASection from "./components/CTASection";
 import AdminButton from "./components/AdminButton";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main>

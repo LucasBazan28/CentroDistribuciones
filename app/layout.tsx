@@ -8,7 +8,7 @@ import ToastContainer from "./components/Toast";
 import { CartProvider } from "./lib/cartContext";
 import { ToastProvider } from "./lib/toastProvider";
 import { ExchangeRateProvider } from "./lib/exchangeRateContext";
-
+import { Analytics } from "@vercel/analytics/next"
 const archivoBlack = Archivo_Black({
   weight: "400",
   variable: "--font-archivo-black",
@@ -44,6 +44,7 @@ export default function RootLayout({
             <CartProvider>
             <HeaderWrapper />
               {children}
+              <Analytics />
               <Footer />
               <ToastContainer />
             </CartProvider>
