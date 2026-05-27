@@ -168,6 +168,8 @@ export async function GET(request: Request) {
 
       // Check for marca_id filter
       const marcaId = searchParams.get("marca_id") ? parseInt(searchParams.get("marca_id")!) : null
+      const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : null
+      const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : null
 
       let query = supabase
         .from("articulos")
@@ -176,6 +178,10 @@ export async function GET(request: Request) {
 
       if (marcaId) {
         query = query.eq("marca_id", marcaId)
+      }
+
+      if (offset !== null && limit !== null) {
+        query = query.range(offset, offset + limit - 1)
       }
 
       const { data, error } = await query

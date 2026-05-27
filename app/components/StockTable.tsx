@@ -483,7 +483,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                   </td>
                   <td className="px-4 py-3 text-center text-gray-700">{articulo.cc}</td>
                   <td className="px-4 py-3 text-right text-gray-900 font-medium">
-                    ${articulo.precio_unitario.toFixed(2)}
+                    ${articulo.precio_unitario.toFixed(4)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -695,7 +695,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                 onChange={(e) => setEditingData({ ...editingData, precio_unitario: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
-                step="0.01"
+                step="0.0001"
               />
             </div>
 
@@ -708,6 +708,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                 onChange={(e) => setEditingData({ ...editingData, stock: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
+                step="1"
               />
             </div>
 
