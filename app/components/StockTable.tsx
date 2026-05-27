@@ -114,8 +114,14 @@ export default function StockTable({ initialData }: StockTableProps) {
     if (selectedMarca && allMarcas.length > 0) {
       const marcaId = allMarcas.find(m => m.nombre === selectedMarca)?.id
       if (marcaId) {
-        const filteredCats = allCategorias.filter(c => c.marca_id === marcaId || c.id === 14)
-        setCategoriasFiltrosSuperior(filteredCats.sort((a, b) => a.nombre.localeCompare(b.nombre)))
+        const categoriasMap = new Map()
+        allCategorias
+          .filter(c => c.marca_id === marcaId || c.id === 14)
+          .forEach(cat => categoriasMap.set(cat.id, cat))
+
+        const filteredCats = Array.from(categoriasMap.values())
+          .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        setCategoriasFiltrosSuperior(filteredCats)
         setSelectedMarcaId(marcaId)
       }
     } else {
@@ -169,7 +175,13 @@ export default function StockTable({ initialData }: StockTableProps) {
       const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === articulo.marca_id)
       setGruposDescuentoFiltrados(filteredGrupos)
 
-      const filteredCats = allCategorias.filter(c => c.marca_id === articulo.marca_id || c.id === 14)
+      const categoriasMap = new Map()
+      allCategorias
+        .filter(c => c.marca_id === articulo.marca_id || c.id === 14)
+        .forEach(cat => categoriasMap.set(cat.id, cat))
+
+      const filteredCats = Array.from(categoriasMap.values())
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
       setCategoriasFiltradas(filteredCats)
     } else {
       setGruposDescuentoFiltrados([])
@@ -198,7 +210,13 @@ export default function StockTable({ initialData }: StockTableProps) {
       const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === newMarcaId)
       setGruposDescuentoFiltrados(filteredGrupos)
 
-      const filteredCats = allCategorias.filter(c => c.marca_id === newMarcaId || c.id === 14)
+      const categoriasMap = new Map()
+      allCategorias
+        .filter(c => c.marca_id === newMarcaId || c.id === 14)
+        .forEach(cat => categoriasMap.set(cat.id, cat))
+
+      const filteredCats = Array.from(categoriasMap.values())
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
       setCategoriasFiltradas(filteredCats)
     } else {
       setGruposDescuentoFiltrados([])
