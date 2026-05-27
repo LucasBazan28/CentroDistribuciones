@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || moneda_id === undefined || moneda_id === null || marca_id === undefined || marca_id === null || categoria_id === undefined || categoria_id === null) {
+    if (!referencia || cc === undefined || cc === null || cc === "" || !descripcion || !embalaje || precio_unitario === undefined || moneda_id === undefined || moneda_id === null || marca_id === undefined || marca_id === null || categoria_id === undefined || categoria_id === null) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -339,7 +339,7 @@ export async function PUT(request: Request) {
     } = body
 
     // Validate required fields
-    if (!id || !referencia || cc === undefined || cc === null || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
+    if (!id || !referencia || cc === undefined || cc === null || cc === "" || !descripcion || !embalaje || precio_unitario === undefined || !moneda_id || !marca_id || !categoria_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

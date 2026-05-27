@@ -283,11 +283,11 @@ export default function NewProductForm() {
             <input
               id="cc"
               name="cc"
-              type="number"
+              type="text"
               value={formData.cc}
               onChange={handleChange}
               required
-              placeholder="ej: 123"
+              placeholder="ej: ABC-123"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>

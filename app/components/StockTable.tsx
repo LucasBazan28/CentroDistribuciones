@@ -8,7 +8,7 @@ import { AlertCircle, Edit2, X, Save, Loader, Image as ImageIcon, Trash2 } from 
 interface Articulo {
   id: number
   referencia: string
-  cc: number
+  cc: string
   descripcion: string
   embalaje: string
   precio_unitario: number
@@ -577,9 +577,9 @@ export default function StockTable({ initialData }: StockTableProps) {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">CC</label>
               <input
-                type="number"
+                type="text"
                 value={editingData.cc}
-                onChange={(e) => setEditingData({ ...editingData, cc: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setEditingData({ ...editingData, cc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
               />

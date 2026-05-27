@@ -12,7 +12,7 @@ interface Marca {
 interface Articulo {
   id: number
   referencia: string
-  cc: number
+  cc: string
   descripcion: string
   embalaje: string
   precio_unitario: number
