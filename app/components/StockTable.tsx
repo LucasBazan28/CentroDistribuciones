@@ -33,6 +33,7 @@ interface StockTableProps {
 export default function StockTable({ initialData }: StockTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedMarca, setSelectedMarca] = useState<string | null>(null)
+  const [selectedMarcaId, setSelectedMarcaId] = useState<number | null>(null)
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null)
   const [stockBajoOnly, setStockBajoOnly] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
@@ -46,24 +47,22 @@ export default function StockTable({ initialData }: StockTableProps) {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<any[]>([])
   const [categoriasFiltradas, setCategoriasFiltradas] = useState<any[]>([])
+  const [categoriasFiltrosSuperior, setCategoriasFiltrosSuperior] = useState<any[]>([])
   const [allGruposDescuento, setAllGruposDescuento] = useState<any[]>([])
   const [allCategorias, setAllCategorias] = useState<any[]>([])
   const [allMarcas, setAllMarcas] = useState<any[]>([])
   const editFormRef = useRef<HTMLDivElement>(null)
 
-  // Extract unique marcas and categorias
-  const { marcas, categorias } = useMemo(() => {
+  // Extract unique marcas
+  const { marcas } = useMemo(() => {
     const marcasSet = new Set<string>()
-    const categoriasSet = new Set<string>()
 
     data.forEach(art => {
       if (art.marcas?.nombre) marcasSet.add(art.marcas.nombre)
-      if (art.categorias?.nombre) categoriasSet.add(art.categorias.nombre)
     })
 
     return {
       marcas: Array.from(marcasSet).sort(),
-      categorias: Array.from(categoriasSet).sort(),
     }
   }, [data])
 
@@ -109,6 +108,22 @@ export default function StockTable({ initialData }: StockTableProps) {
   }, [data, searchTerm, selectedMarca, selectedCategoria, stockBajoOnly, statusFilter])
 
   const hasActiveFilters = selectedMarca || selectedCategoria || stockBajoOnly || statusFilter !== "all"
+
+  // Update filter categories when marca is selected
+  useEffect(() => {
+    if (selectedMarca && allMarcas.length > 0) {
+      const marcaId = allMarcas.find(m => m.nombre === selectedMarca)?.id
+      if (marcaId) {
+        const filteredCats = allCategorias.filter(c => c.marca_id === marcaId || c.id === 14)
+        setCategoriasFiltrosSuperior(filteredCats.sort((a, b) => a.nombre.localeCompare(b.nombre)))
+        setSelectedMarcaId(marcaId)
+      }
+    } else {
+      setCategoriasFiltrosSuperior([])
+      setSelectedMarcaId(null)
+      setSelectedCategoria(null)
+    }
+  }, [selectedMarca, allMarcas, allCategorias])
 
   // Scroll to edit form when editing
   useEffect(() => {
@@ -374,11 +389,12 @@ export default function StockTable({ initialData }: StockTableProps) {
             value={selectedCategoria || ""}
             onChange={(e) => setSelectedCategoria(e.target.value || null)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            disabled={!selectedMarca}
           >
-            <option value="">Todas</option>
-            {categorias.map(categoria => (
-              <option key={categoria} value={categoria}>
-                {categoria}
+            <option value="">{selectedMarca ? "Todas" : "Selecciona una marca primero"}</option>
+            {categoriasFiltrosSuperior.map(categoria => (
+              <option key={categoria.id} value={categoria.nombre}>
+                {categoria.nombre}
               </option>
             ))}
           </select>
