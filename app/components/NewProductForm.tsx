@@ -58,6 +58,8 @@ export default function NewProductForm() {
     grupo_descuento_id: "",
     categoria_id: "",
     imageURL: "",
+    iva: "21",
+    ganancia: "30",
   })
 
   useEffect(() => {
@@ -107,6 +109,8 @@ export default function NewProductForm() {
       grupo_descuento_id: "",
       categoria_id: "",
       imageURL: "",
+      iva: "21",
+      ganancia: "30",
     })
     setGruposDescuentoFiltrados([])
     setCategoriasFiltradas([])
@@ -399,6 +403,42 @@ export default function NewProductForm() {
               onChange={handleChange}
               min="0"
               placeholder="0"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="iva" className="block text-sm font-medium text-gray-700 mb-2">
+              IVA (%)
+            </label>
+            <input
+              id="iva"
+              name="iva"
+              type="number"
+              value={formData.iva}
+              onChange={handleChange}
+              step="0.01"
+              min="0"
+              placeholder="21"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="ganancia" className="block text-sm font-medium text-gray-700 mb-2">
+              Ganancia (%)
+            </label>
+            <input
+              id="ganancia"
+              name="ganancia"
+              type="number"
+              value={formData.ganancia}
+              onChange={handleChange}
+              step="0.01"
+              min="0"
+              placeholder="30"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>

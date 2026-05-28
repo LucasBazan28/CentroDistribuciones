@@ -40,6 +40,8 @@ export async function POST(request: Request) {
       categoria_id,
       activo,
       imageURL,
+      iva,
+      ganancia,
     } = body
 
     // Validate required fields
@@ -96,6 +98,8 @@ export async function POST(request: Request) {
           grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
           categoria_id: parseInt(categoria_id),
           imageURL: imageURL || null,
+          iva: iva !== undefined ? parseFloat(iva) : 21,
+          ganancia: ganancia !== undefined ? parseFloat(ganancia) : 30,
           ...(activo !== undefined && { activo }),
         },
       ])
@@ -175,6 +179,7 @@ export async function GET(request: Request) {
         .from("articulos")
         .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
         .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
 
       if (marcaId) {
         query = query.eq("marca_id", marcaId)
@@ -207,7 +212,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("articulos")
-      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL", { count: "exact" })
+      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, iva, ganancia", { count: "exact" })
       .eq("activo", true)
 
     // Apply filters
@@ -342,6 +347,8 @@ export async function PUT(request: Request) {
       categoria_id,
       activo,
       imageURL,
+      iva,
+      ganancia,
     } = body
 
     // Validate required fields
@@ -411,6 +418,8 @@ export async function PUT(request: Request) {
         grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
         categoria_id: parseInt(categoria_id),
         imageURL: imageURL || null,
+        ...(iva !== undefined && { iva: parseFloat(iva) }),
+        ...(ganancia !== undefined && { ganancia: parseFloat(ganancia) }),
         ...(activo !== undefined && { activo }),
       })
       .eq("id", id)

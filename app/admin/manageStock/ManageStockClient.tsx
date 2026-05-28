@@ -27,6 +27,8 @@ interface Articulo {
   marcas?: { nombre: string }
   grupo_descuento?: { nombre: string } | null
   categorias?: { nombre: string }
+  iva: number
+  ganancia: number
 }
 
 interface ManageStockClientProps {
@@ -179,7 +181,7 @@ export default function ManageStockClient({ marcas }: ManageStockClientProps) {
               <p className="text-gray-500">No hay productos para esta marca</p>
             </div>
           ) : (
-            <StockTable initialData={articulos} />
+            <StockTable initialData={articulos} preselectedMarcaId={selectedMarcaId} />
           )}
         </div>
       )}
