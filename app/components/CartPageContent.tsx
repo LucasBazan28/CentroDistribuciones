@@ -26,8 +26,23 @@ export default function CartPageContent() {
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
   const subtotal = convertCurrency(subtotalUSD);
-  const iva = subtotal * 0.21;
-  const total = subtotal + iva;
+
+  // Calcular IVA dinámico basado en cada producto
+  const ivaDetails = cartState.items.map((item) => {
+    const precioConIVA = item.precio_venta * item.quantity;
+    const alicuota = (item.iva || 21) / 100;
+    const precioSinIVA = precioConIVA / (1 + alicuota);
+    const ivaProducto = precioConIVA - precioSinIVA;
+    return { precioSinIVA, ivaProducto };
+  });
+
+  const subtotalSinIVA = convertCurrency(
+    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].precioSinIVA, 0)
+  );
+  const ivaTotal = convertCurrency(
+    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].ivaProducto, 0)
+  );
+  const total = subtotalSinIVA + ivaTotal;
 
   const formatPrice = (price: number): string => {
     if (currency === "USD") {
@@ -91,9 +106,14 @@ export default function CartPageContent() {
                       {item.marcas && (
                         <p className="mt-1 text-xs text-gray-500">{item.marcas.nombre}</p>
                       )}
-                      <p className="mt-2 text-base font-bold text-gray-900 sm:text-lg">
-                        {formatPrice(convertCurrency(item.precio_venta))}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm text-gray-600">
+                          Sin IVA: <span className="font-semibold text-gray-900">{formatPrice(convertCurrency(item.precio_venta / (1 + (item.iva || 21) / 100)))}</span>
+                        </p>
+                        <p className="text-base font-bold text-gray-900 sm:text-lg">
+                          Con IVA: {formatPrice(convertCurrency(item.precio_venta))}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Quantity and remove */}
@@ -161,12 +181,12 @@ export default function CartPageContent() {
 
                   <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Subtotal:</span>
-                      <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
+                      <span className="text-gray-600">Subtotal (sin IVA):</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(subtotalSinIVA)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">IVA (21%):</span>
-                      <span className="font-semibold text-gray-900">{formatPrice(iva)}</span>
+                      <span className="text-gray-600">IVA:</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(ivaTotal)}</span>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                       <span className="font-bold text-gray-900">Total:</span>
