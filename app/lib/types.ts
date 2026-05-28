@@ -11,6 +11,8 @@ export interface Product {
   grupo_descuento?: { nombre: string; descuento: number } | null;
   precio_venta: number;
   imageURL?: string | null;
+  iva: number;
+  ganancia: number;
 }
 
 export interface Category {

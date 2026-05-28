@@ -27,6 +27,8 @@ interface Articulo {
   marcas?: { nombre: string }
   grupo_descuento?: { nombre: string } | null
   categorias?: { nombre: string }
+  iva: number
+  ganancia: number
 }
 
 interface ManageStockClientProps {
@@ -47,12 +49,34 @@ export default function ManageStockClient({ marcas }: ManageStockClientProps) {
     setError(null)
 
     try {
-      const response = await fetch(`/api/articulos?marca_id=${marcaId}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch articulos")
+      let allArticulos: Articulo[] = []
+      let offset = 0
+      const pageSize = 300
+
+      while (true) {
+        const params = new URLSearchParams()
+        params.set("marca_id", marcaId.toString())
+        params.set("offset", offset.toString())
+        params.set("limit", pageSize.toString())
+
+        const response = await fetch(`/api/articulos?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch articulos")
+        }
+
+        const chunk = await response.json()
+        if (!chunk || chunk.length === 0) break
+
+        allArticulos = [...allArticulos, ...chunk]
+
+        if (chunk.length < pageSize) {
+          break
+        }
+
+        offset += pageSize
       }
-      const data = await response.json()
-      setArticulos(data)
+
+      setArticulos(allArticulos)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading products")
       setArticulos([])
@@ -157,7 +181,7 @@ export default function ManageStockClient({ marcas }: ManageStockClientProps) {
               <p className="text-gray-500">No hay productos para esta marca</p>
             </div>
           ) : (
-            <StockTable initialData={articulos} />
+            <StockTable initialData={articulos} preselectedMarcaId={selectedMarcaId} />
           )}
         </div>
       )}

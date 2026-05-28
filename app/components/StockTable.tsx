@@ -24,13 +24,16 @@ interface Articulo {
   marcas?: { nombre: string }
   grupo_descuento?: { nombre: string } | null
   categorias?: { nombre: string }
+  iva: number
+  ganancia: number
 }
 
 interface StockTableProps {
   initialData: Articulo[]
+  preselectedMarcaId?: number | null
 }
 
-export default function StockTable({ initialData }: StockTableProps) {
+export default function StockTable({ initialData, preselectedMarcaId }: StockTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedMarca, setSelectedMarca] = useState<string | null>(null)
   const [selectedMarcaId, setSelectedMarcaId] = useState<number | null>(null)
@@ -114,8 +117,14 @@ export default function StockTable({ initialData }: StockTableProps) {
     if (selectedMarca && allMarcas.length > 0) {
       const marcaId = allMarcas.find(m => m.nombre === selectedMarca)?.id
       if (marcaId) {
-        const filteredCats = allCategorias.filter(c => c.marca_id === marcaId || c.id === 14)
-        setCategoriasFiltrosSuperior(filteredCats.sort((a, b) => a.nombre.localeCompare(b.nombre)))
+        const categoriasMap = new Map()
+        allCategorias
+          .filter(c => c.marca_id === marcaId || c.id === 14)
+          .forEach(cat => categoriasMap.set(cat.id, cat))
+
+        const filteredCats = Array.from(categoriasMap.values())
+          .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        setCategoriasFiltrosSuperior(filteredCats)
         setSelectedMarcaId(marcaId)
       }
     } else {
@@ -159,6 +168,20 @@ export default function StockTable({ initialData }: StockTableProps) {
     loadDropdownData()
   }, [])
 
+  // Auto-filter categories when marca is selected from ManageStock
+  useEffect(() => {
+    if (preselectedMarcaId && allMarcas.length > 0 && allCategorias.length > 0) {
+      const categoriasMap = new Map()
+      allCategorias
+        .filter(c => c.marca_id === preselectedMarcaId || c.id === 14)
+        .forEach(cat => categoriasMap.set(cat.id, cat))
+
+      const filteredCats = Array.from(categoriasMap.values())
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+      setCategoriasFiltrosSuperior(filteredCats)
+    }
+  }, [preselectedMarcaId, allMarcas, allCategorias])
+
   const handleEdit = (articulo: Articulo) => {
     setEditingId(articulo.id)
     setEditingData({ ...articulo })
@@ -169,7 +192,13 @@ export default function StockTable({ initialData }: StockTableProps) {
       const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === articulo.marca_id)
       setGruposDescuentoFiltrados(filteredGrupos)
 
-      const filteredCats = allCategorias.filter(c => c.marca_id === articulo.marca_id || c.id === 14)
+      const categoriasMap = new Map()
+      allCategorias
+        .filter(c => c.marca_id === articulo.marca_id || c.id === 14)
+        .forEach(cat => categoriasMap.set(cat.id, cat))
+
+      const filteredCats = Array.from(categoriasMap.values())
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
       setCategoriasFiltradas(filteredCats)
     } else {
       setGruposDescuentoFiltrados([])
@@ -198,7 +227,13 @@ export default function StockTable({ initialData }: StockTableProps) {
       const filteredGrupos = allGruposDescuento.filter(g => g.marca_id === newMarcaId)
       setGruposDescuentoFiltrados(filteredGrupos)
 
-      const filteredCats = allCategorias.filter(c => c.marca_id === newMarcaId || c.id === 14)
+      const categoriasMap = new Map()
+      allCategorias
+        .filter(c => c.marca_id === newMarcaId || c.id === 14)
+        .forEach(cat => categoriasMap.set(cat.id, cat))
+
+      const filteredCats = Array.from(categoriasMap.values())
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
       setCategoriasFiltradas(filteredCats)
     } else {
       setGruposDescuentoFiltrados([])
@@ -285,6 +320,8 @@ export default function StockTable({ initialData }: StockTableProps) {
           categoria_id: editingData.categoria_id,
           activo: editingData.activo,
           imageURL: imageURLToUse || null,
+          iva: editingData.iva,
+          ganancia: editingData.ganancia,
         }),
       })
 
@@ -365,22 +402,24 @@ export default function StockTable({ initialData }: StockTableProps) {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
-        {/* Marca Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-          <select
-            value={selectedMarca || ""}
-            onChange={(e) => setSelectedMarca(e.target.value || null)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-          >
-            <option value="">Todas</option>
-            {marcas.map(marca => (
-              <option key={marca} value={marca}>
-                {marca}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Marca Filter - Only show if not pre-selected from ManageStock */}
+        {!preselectedMarcaId && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+            <select
+              value={selectedMarca || ""}
+              onChange={(e) => setSelectedMarca(e.target.value || null)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            >
+              <option value="">Todas</option>
+              {marcas.map(marca => (
+                <option key={marca} value={marca}>
+                  {marca}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Categoria Filter */}
         <div>
@@ -389,9 +428,9 @@ export default function StockTable({ initialData }: StockTableProps) {
             value={selectedCategoria || ""}
             onChange={(e) => setSelectedCategoria(e.target.value || null)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            disabled={!selectedMarca}
+            disabled={!selectedMarca && !preselectedMarcaId}
           >
-            <option value="">{selectedMarca ? "Todas" : "Selecciona una marca primero"}</option>
+            <option value="">{(selectedMarca || preselectedMarcaId) ? "Todas" : "Selecciona una marca primero"}</option>
             {categoriasFiltrosSuperior.map(categoria => (
               <option key={categoria.id} value={categoria.nombre}>
                 {categoria.nombre}
@@ -483,7 +522,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                   </td>
                   <td className="px-4 py-3 text-center text-gray-700">{articulo.cc}</td>
                   <td className="px-4 py-3 text-right text-gray-900 font-medium">
-                    ${articulo.precio_unitario.toFixed(2)}
+                    ${articulo.precio_unitario.toFixed(4)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -695,6 +734,32 @@ export default function StockTable({ initialData }: StockTableProps) {
                 onChange={(e) => setEditingData({ ...editingData, precio_unitario: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
+                step="0.0001"
+              />
+            </div>
+
+            {/* IVA */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">IVA (%)</label>
+              <input
+                type="number"
+                value={editingData.iva}
+                onChange={(e) => setEditingData({ ...editingData, iva: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+                step="0.01"
+              />
+            </div>
+
+            {/* Ganancia */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ganancia (%)</label>
+              <input
+                type="number"
+                value={editingData.ganancia}
+                onChange={(e) => setEditingData({ ...editingData, ganancia: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
                 step="0.01"
               />
             </div>
@@ -708,6 +773,7 @@ export default function StockTable({ initialData }: StockTableProps) {
                 onChange={(e) => setEditingData({ ...editingData, stock: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
+                step="1"
               />
             </div>
 

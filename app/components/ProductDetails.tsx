@@ -34,6 +34,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   const isOutOfStock = product.stock === 0
 
+  // Debug logs
+  console.log("IVA:", product.iva, "| Precio venta:", product.precio_venta, "| Precio sin IVA:", product.precio_venta / (1 + (product.iva || 21) / 100))
+  const precioSinIVA = product.precio_venta / (1 + (product.iva || 21) / 100)
+
   const handleAddToCartClick = () => {
     if (isOutOfStock) {
       setShowOutOfStockWarning(true)
@@ -107,11 +111,19 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
         {/* Price and Stock */}
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-          <div className="mb-4">
-            <p className="text-sm text-gray-600">Precio</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {formatPrice(product.precio_venta)}
+          <div className="mb-4 space-y-3">
+            <div>
+              <p className="text-sm text-gray-600">Precio (con IVA)</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {formatPrice(product.precio_venta)}
+              </p>
+            </div>
+          <div>
+            <p className="text-sm text-gray-600">Precio sin IVA</p>
+            <p className="text-2xl font-semibold text-gray-700">
+              {isNaN(precioSinIVA) ? "N/A" : formatPrice(precioSinIVA)}
             </p>
+          </div>
           </div>
 
           {/* Stock Status */}
