@@ -33,9 +33,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [showOutOfStockWarning, setShowOutOfStockWarning] = useState(false)
 
   const isOutOfStock = product.stock === 0
-
-  // Debug logs
-  console.log("IVA:", product.iva, "| Precio venta:", product.precio_venta, "| Precio sin IVA:", product.precio_venta / (1 + (product.iva || 21) / 100))
+ 
   const precioSinIVA = product.precio_venta / (1 + (product.iva || 21) / 100)
 
   const handleAddToCartClick = () => {
@@ -58,7 +56,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       {/* Product Image */}
       <div className="flex items-center justify-center">
         <div
-          className={`relative min-h-screen w-full overflow-hidden rounded-2xl ${getGradientForProduct(
+          className={`relative aspect-square w-full overflow-hidden rounded-2xl ${getGradientForProduct(
             product.id
           )}`}
         >
@@ -119,7 +117,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               </p>
             </div>
           <div>
-            <p className="text-sm text-gray-600">Precio sin IVA</p>
+            <p className="text-sm text-gray-600">Precio sin impuestos</p>
             <p className="text-2xl font-semibold text-gray-700">
               {isNaN(precioSinIVA) ? "N/A" : formatPrice(precioSinIVA)}
             </p>
