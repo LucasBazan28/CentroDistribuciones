@@ -13,6 +13,7 @@ export interface Product {
   imageURL?: string | null;
   iva: number;
   ganancia: number;
+  observacion?: string | null;
 }
 
 export interface Category {

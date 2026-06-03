@@ -123,7 +123,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </p>
           </div>
           </div>
+        </div>
 
+        {/* Observation */}
+        {product.observacion && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm font-semibold text-blue-900">Observación</p>
+            <p className="mt-2 text-sm text-blue-800">
+              {product.observacion}
+            </p>
+          </div>
+        )}
+
+        {/* Price and Stock */}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
           {/* Stock Status */}
           <div className={`rounded-lg p-3 ${
             isOutOfStock
