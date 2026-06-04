@@ -73,7 +73,7 @@ Timestamp: ${new Date().toISOString()}
 
     const {data, error} = await resend.emails.send({
       from: 'noreply@centrodistribuciones.ar',
-      to: 'disribucionzoloda.bb@gmail.com', //disribucionzoloda.bb@gmail.com
+      to: 'distribucionzoloda.bb@gmail.com',
       replyTo: body.email,
       subject: `Nuevo Presupuesto - ${body.nombre}`,
       text: emailContent,
