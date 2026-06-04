@@ -45,6 +45,13 @@ const slides = [
     isBrandsSlide: true,
     gradient: "from-primary-light via-primary to-dark",
   },
+  {
+    title: "Nuestro local",
+    subtitle: "Centro Distribuciones",
+    image: "/images/CentroDistribuciones-local.jpeg",
+    isImageSlide: true,
+    gradient: "from-primary via-primary-dark to-dark",
+  },
 ];
 
 export default function HeroBanner() {
@@ -76,14 +83,23 @@ export default function HeroBanner() {
                 : "opacity-0 z-0"
             }`}
           >
-            {/* Decorative pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-10 right-10 h-64 w-64 rounded-full border-[40px] border-white/20" />
-              <div className="absolute bottom-10 left-10 h-48 w-48 rounded-full border-[30px] border-white/20" />
-              <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full border-[50px] border-white/10" />
-            </div>
-            <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
-              {slide.isBrandsSlide ? (
+            {slide.isImageSlide ? (
+              <Image
+                src={slide.image}
+                alt={slide.title || "Imagen"}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <>
+                {/* Decorative pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-10 right-10 h-64 w-64 rounded-full border-[40px] border-white/20" />
+                  <div className="absolute bottom-10 left-10 h-48 w-48 rounded-full border-[30px] border-white/20" />
+                  <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full border-[50px] border-white/10" />
+                </div>
+                <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
+                  {slide.isBrandsSlide ? (
                 <div className="w-full text-center">
                   <h1 className="text-3xl font-bold text-white sm:text-4xl md:text-5xl mb-2 animate-slide-left">
                     {slide.title}
@@ -138,6 +154,8 @@ export default function HeroBanner() {
                 </div>
               )}
             </div>
+              </>
+            )}
           </div>
         ))}
       </div>
