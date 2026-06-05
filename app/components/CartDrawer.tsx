@@ -4,6 +4,7 @@ import { useCart } from "@/app/lib/cartContext";
 import { useExchangeRate } from "@/app/lib/exchangeRateContext";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 interface CartDrawerProps {
   onClose: () => void;
@@ -13,6 +14,8 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
   const router = useRouter();
   const { state: cartState, removeItem, updateQuantity } = useCart();
   const { formatPrice, convertCurrency, currency } = useExchangeRate();
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState<string>("");
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
   const subtotal = convertCurrency(subtotalUSD);
@@ -47,6 +50,29 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
         currency: "ARS",
         minimumFractionDigits: 0,
       }).format(price);
+    }
+  };
+
+  const handleEditQuantity = (itemId: number, currentQuantity: number) => {
+    setEditingItemId(itemId);
+    setEditingValue(currentQuantity.toString());
+  };
+
+  const handleSaveQuantity = (itemId: number) => {
+    const newQuantity = parseInt(editingValue, 10);
+    if (!isNaN(newQuantity) && newQuantity >= 1) {
+      updateQuantity(itemId, newQuantity);
+    }
+    setEditingItemId(null);
+    setEditingValue("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, itemId: number) => {
+    if (e.key === "Enter") {
+      handleSaveQuantity(itemId);
+    } else if (e.key === "Escape") {
+      setEditingItemId(null);
+      setEditingValue("");
     }
   };
 
@@ -122,9 +148,26 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="w-6 text-center text-xs font-semibold">
-                        {item.quantity}
-                      </span>
+                      {editingItemId === item.id ? (
+                        <input
+                          type="number"
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onBlur={() => handleSaveQuantity(item.id)}
+                          onKeyDown={(e) => handleKeyPress(e, item.id)}
+                          className="w-6 text-center text-xs font-semibold border-0 outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                          autoFocus
+                          min="1"
+                        />
+                      ) : (
+                        <span
+                          className="w-6 text-center text-xs font-semibold cursor-pointer hover:bg-gray-100 px-0.5 py-1 rounded transition-colors"
+                          onClick={() => handleEditQuantity(item.id, item.quantity)}
+                          title="Haz clic para editar"
+                        >
+                          {item.quantity}
+                        </span>
+                      )}
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="p-1 text-gray-600 hover:bg-gray-100"
