@@ -14,6 +14,8 @@ export default function CartPageContent() {
   const { convertCurrency, currency } = useExchangeRate();
   const [showQuoteForm, setShowQuoteForm] = useState(searchParams.get("quote") === "true");
   const quoteFormRef = useRef<HTMLDivElement>(null);
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState<string>("");
 
   // Scroll to quote form when it becomes visible
   useEffect(() => {
@@ -23,6 +25,29 @@ export default function CartPageContent() {
       }, 100);
     }
   }, [showQuoteForm]);
+
+  const handleEditQuantity = (itemId: number, currentQuantity: number) => {
+    setEditingItemId(itemId);
+    setEditingValue(currentQuantity.toString());
+  };
+
+  const handleSaveQuantity = (itemId: number) => {
+    const newQuantity = parseInt(editingValue, 10);
+    if (!isNaN(newQuantity) && newQuantity >= 1) {
+      updateQuantity(itemId, newQuantity);
+    }
+    setEditingItemId(null);
+    setEditingValue("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, itemId: number) => {
+    if (e.key === "Enter") {
+      handleSaveQuantity(itemId);
+    } else if (e.key === "Escape") {
+      setEditingItemId(null);
+      setEditingValue("");
+    }
+  };
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
   const subtotal = convertCurrency(subtotalUSD);
@@ -129,9 +154,26 @@ export default function CartPageContent() {
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-semibold">
-                          {item.quantity}
-                        </span>
+                        {editingItemId === item.id ? (
+                          <input
+                            type="number"
+                            value={editingValue}
+                            onChange={(e) => setEditingValue(e.target.value)}
+                            onBlur={() => handleSaveQuantity(item.id)}
+                            onKeyDown={(e) => handleKeyPress(e, item.id)}
+                            className="w-8 sm:w-8 text-center text-xs sm:text-sm font-semibold border-0 outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                            autoFocus
+                            min="1"
+                          />
+                        ) : (
+                          <span
+                            className="w-6 sm:w-8 text-center text-xs sm:text-sm font-semibold cursor-pointer hover:bg-gray-100 px-0.5 py-1 rounded transition-colors"
+                            onClick={() => handleEditQuantity(item.id, item.quantity)}
+                            title="Haz clic para editar"
+                          >
+                            {item.quantity}
+                          </span>
+                        )}
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100"
