@@ -77,6 +77,29 @@ export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: Quot
 
   const subtotalUSD = cartItems.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
   const subtotal = convertToARS(subtotalUSD);
+  
+  const ivaDetails = cartItems.map((item) => {
+    const precioConIVA = item.precio_venta * item.quantity;
+    const alicuota = (item.iva || 21) / 100;
+
+    const precioSinIVA = precioConIVA / (1 + alicuota);
+    const ivaProducto = precioConIVA - precioSinIVA;
+
+    return {
+      precioSinIVA,
+      ivaProducto,
+    };
+  });
+
+  const subtotalSinIVA = convertToARS(
+    ivaDetails.reduce((sum, item) => sum + item.precioSinIVA, 0)
+  );
+
+  const ivaTotal = convertToARS(
+    ivaDetails.reduce((sum, item) => sum + item.ivaProducto, 0)
+  );
+
+  const total = subtotalSinIVA + ivaTotal;
 
   const formatPrice = (price: number): string => {
     return new Intl.NumberFormat("es-AR", {
@@ -105,9 +128,25 @@ export default function QuoteRequestForm({ cartItems, onClose, onSuccess }: Quot
             </div>
           ))}
         </div>
-        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between font-bold text-gray-900">
-          <span>Total:</span>
-          <span>{formatPrice(subtotal)}</span>
+        <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">Subtotal (sin IVA):</span>
+            <span className="font-medium">
+              {formatPrice(subtotalSinIVA)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">IVA:</span>
+            <span className="font-medium">
+              {formatPrice(ivaTotal)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between font-bold text-gray-900 pt-2 border-t border-gray-200">
+            <span>Total:</span>
+            <span>{formatPrice(total)}</span>
+          </div>
         </div>
       </div>
 
