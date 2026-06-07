@@ -12,9 +12,17 @@ const brands = [
   { name: "SCAME", logo: "/logos/LOGO-SCAME.jpeg" },
   { name: "HellermannTyton", logo: "/logos/LOGO-HELLERMANN.jpeg" },
   { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA.png" },
+  { name: "IMSA", logo: "/logos/LOGO-IMSA.jpeg" },
 ];
 
 const slides = [
+  {
+    title: "Nuestro local",
+    subtitle: "Centro Distribuciones",
+    image: "/images/CentroDistribuciones-local.jpeg",
+    isImageSlide: true,
+    gradient: "from-primary via-primary-dark to-dark",
+  },
   {
     title: "Distribuidor Oficial de Material Eléctrico",
     subtitle:
@@ -44,13 +52,6 @@ const slides = [
     subtitle: "Distribuidor oficial de las mejores marcas del mercado",
     isBrandsSlide: true,
     gradient: "from-primary-light via-primary to-dark",
-  },
-  {
-    title: "Nuestro local",
-    subtitle: "Centro Distribuciones",
-    image: "/images/CentroDistribuciones-local.jpeg",
-    isImageSlide: true,
-    gradient: "from-primary via-primary-dark to-dark",
   },
 ];
 

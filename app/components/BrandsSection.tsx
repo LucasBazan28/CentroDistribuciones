@@ -7,10 +7,10 @@ const brands = [
   { name: "WEG", logo: "/logos/LOGO-WEG.jpeg" },
   { name: "WENTINCK", logo: "/logos/LOGO-WTK.png" },
   { name: "TECNOBOX", logo: "/logos/LOGO-TECNOBOX-RGB-VERT.png" },
-  //{ name: "Accesorios Eléctricos Argentinos S.A.", initials: "AEASA" },
   { name: "SCAME", logo: "/logos/LOGO-SCAME.jpeg" },
   { name: "HELLERMANN TYTON", logo: "/logos/LOGO-HELLERMANN.jpeg" },
   { name: "TRAMONTINA", logo: "/logos/LOGO-TRAMONTINA-fondo-blanco.jpeg" },
+  { name: "IMSA", logo: "/logos/LOGO-IMSA.jpeg" },
 ];
 
 export default function BrandsSection() {
