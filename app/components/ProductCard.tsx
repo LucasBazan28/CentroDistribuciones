@@ -7,7 +7,7 @@ import { Product } from "@/app/lib/types";
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
-  formatPrice: (price: number) => string;
+  formatPrice: (price: number, monedaId: number) => string;
 }
 
 const gradients = [
@@ -75,7 +75,7 @@ export default function ProductCard({
 
         <div className="mt-3 flex flex-col gap-2">
           <span className="text-lg font-bold text-gray-900">
-            {formatPrice(product.precio_venta)}
+            {formatPrice(product.precio_venta, product.moneda_id)}
           </span>
           <Link
             href={`/products/${product.id}`}

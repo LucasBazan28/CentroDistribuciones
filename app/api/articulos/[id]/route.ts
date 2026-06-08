@@ -51,7 +51,7 @@ export async function GET(
     const { data, error } = await supabase
       .from("articulos")
       .select(
-        "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+        "id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
       )
       .eq("id", productId)
       .eq("activo", true)

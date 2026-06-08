@@ -200,18 +200,6 @@ export default function ProductsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sticky Search Section
-      <div className="sticky top-0 z-40 bg-white shadow-md">
-        <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-          <SearchBar
-            onSearch={setSearchTerm}
-            placeholder="Buscar referencia, marca o descripción... Ej: Zoloda BPN-50"
-            compact={true}
-            initialValue={searchTerm}
-          />
-        </div>
-      </div>*/}
-
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
