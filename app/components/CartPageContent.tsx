@@ -50,7 +50,16 @@ export default function CartPageContent() {
   };
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
-  const subtotal = convertCurrency(subtotalUSD);
+  //const subtotal = convertCurrency(subtotalUSD);
+    const subtotal = cartState.items.reduce(
+    (sum, item) =>
+      sum +
+      convertCurrency(
+        item.precio_venta * item.quantity,
+        item.moneda_id
+      ),
+    0
+  );
 
   // Calcular IVA dinámico basado en cada producto
   const ivaDetails = cartState.items.map((item) => {
@@ -61,11 +70,24 @@ export default function CartPageContent() {
     return { precioSinIVA, ivaProducto };
   });
 
-  const subtotalSinIVA = convertCurrency(
-    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].precioSinIVA, 0)
+  const subtotalSinIVA = cartState.items.reduce(
+    (sum, item, idx) =>
+      sum +
+      convertCurrency(
+        ivaDetails[idx].precioSinIVA,
+        item.moneda_id
+      ),
+    0
   );
-  const ivaTotal = convertCurrency(
-    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].ivaProducto, 0)
+
+  const ivaTotal = cartState.items.reduce(
+    (sum, item, idx) =>
+      sum +
+      convertCurrency(
+        ivaDetails[idx].ivaProducto,
+        item.moneda_id
+      ),
+    0
   );
   const total = subtotalSinIVA + ivaTotal;
 
@@ -133,10 +155,10 @@ export default function CartPageContent() {
                       )}
                       <div className="mt-2 space-y-1">
                         <p className="text-sm text-gray-600">
-                          Sin IVA: <span className="font-semibold text-gray-900">{formatPrice(convertCurrency(item.precio_venta / (1 + (item.iva || 21) / 100)))}</span>
+                          Sin IVA: <span className="font-semibold text-gray-900">{formatPrice(convertCurrency(item.precio_venta / (1 + (item.iva || 21) / 100), item.moneda_id))}</span>
                         </p>
                         <p className="text-base font-bold text-gray-900 sm:text-lg">
-                          Con IVA: {formatPrice(convertCurrency(item.precio_venta))}
+                          Con IVA: {formatPrice(convertCurrency(item.precio_venta, item.moneda_id))}
                         </p>
                       </div>
                     </div>
@@ -192,7 +214,7 @@ export default function CartPageContent() {
                           Eliminar
                         </button>
                         <p className="text-xs text-gray-500 sm:text-sm">
-                          Subtotal: {formatPrice(convertCurrency(item.precio_venta * item.quantity))}
+                          Subtotal: {formatPrice(convertCurrency(item.precio_venta * item.quantity, item.moneda_id))}
                         </p>
                       </div>
                     </div>
