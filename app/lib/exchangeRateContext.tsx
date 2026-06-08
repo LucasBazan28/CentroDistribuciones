@@ -12,8 +12,8 @@ interface ExchangeRateContextType {
   setCurrency: (currency: Currency) => void;
   convertToARS: (usdAmount: number) => number;
   formatPriceARS: (usdAmount: number) => string;
-  formatPrice: (usdAmount: number) => string;
-  convertCurrency: (usdAmount: number) => number;
+  formatPrice: (usdAmount: number, monedaId: number) => string;
+  convertCurrency: (usdAmount: number, monedaId: number) => number;
 }
 
 const ExchangeRateContext = createContext<ExchangeRateContextType | undefined>(undefined);
@@ -62,8 +62,24 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
     return usdAmount * dollarRate;
   };
 
-  const convertCurrency = (usdAmount: number): number => {
-    return currency === "ARS" ? convertToARS(usdAmount) : usdAmount;
+const convertCurrency = (amount: number, monedaId: number): number => {
+    if (!dollarRate) return amount;
+
+    // Producto en ARS
+    if (monedaId === 1) {
+      return currency === "USD"
+        ? amount / dollarRate
+        : amount;
+    }
+
+    // Producto en USD
+    if (monedaId === 2) {
+      return currency === "ARS"
+        ? amount * dollarRate
+        : amount;
+    }
+
+    return amount;
   };
 
   const formatPriceARS = (usdAmount: number): string => {
@@ -77,16 +93,32 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
     return formatted.replace(/^ARS\s/, "AR$ ");
   };
 
-  const formatPrice = (usdAmount: number): string => {
+  const formatPrice = (amount: number, monedaId: number): string => {
+    const convertedAmount = convertCurrency(
+      amount,
+      monedaId
+    );
+      console.log("formatPrice", {
+        amount,
+        monedaId,
+        currency,
+        dollarRate
+      });
     if (currency === "USD") {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
         minimumFractionDigits: 2,
-      }).format(usdAmount);
-    } else {
-      return formatPriceARS(usdAmount);
+      }).format(convertedAmount);
     }
+
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 0,
+    })
+      .format(convertedAmount)
+      .replace(/^ARS\s/, "AR$ ");
   };
 
   return (

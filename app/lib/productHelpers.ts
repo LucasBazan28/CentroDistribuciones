@@ -90,7 +90,7 @@ export async function fetchProductById(id: number): Promise<any> {
     const { data, error } = await supabase
       .from("articulos")
       .select(
-        "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+        "id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
       )
       .eq("id", id)
       .eq("activo", true)
@@ -140,7 +140,7 @@ export async function fetchRelatedProducts(product: any, limit: number = 4): Pro
       const { data } = await supabase
         .from("articulos")
         .select(
-          "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+          "id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
         )
         .eq("categoria_id", product.categoria_id)
         .eq("activo", true)
@@ -155,7 +155,7 @@ export async function fetchRelatedProducts(product: any, limit: number = 4): Pro
       const { data } = await supabase
         .from("articulos")
         .select(
-          "id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
+          "id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, observacion, marcas(nombre), grupo_descuento(nombre, descuento), categorias(nombre)"
         )
         .eq("marca_id", product.marca_id)
         .eq("activo", true)

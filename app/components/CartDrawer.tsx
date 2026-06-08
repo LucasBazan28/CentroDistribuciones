@@ -18,8 +18,16 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
   const [editingValue, setEditingValue] = useState<string>("");
 
   const subtotalUSD = cartState.items.reduce((sum, item) => sum + item.precio_venta * item.quantity, 0);
-  const subtotal = convertCurrency(subtotalUSD);
-
+  //const subtotal = convertCurrency(subtotalUSD, cartState.items[0]?.moneda_id || 2); // Assuming all items have the same moneda_id, default to ARS (2) if empty
+  const subtotal = cartState.items.reduce(
+    (sum, item) =>
+      sum +
+      convertCurrency(
+        item.precio_venta * item.quantity,
+        item.moneda_id
+      ),
+    0
+  );
   // Calcular IVA dinámico basado en cada producto
   const ivaDetails = cartState.items.map((item) => {
     const precioConIVA = item.precio_venta * item.quantity;
@@ -29,29 +37,27 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
     return { precioSinIVA, ivaProducto };
   });
 
-  const subtotalSinIVA = convertCurrency(
-    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].precioSinIVA, 0)
+  const subtotalSinIVA = cartState.items.reduce(
+    (sum, item, idx) =>
+      sum +
+      convertCurrency(
+        ivaDetails[idx].precioSinIVA,
+        item.moneda_id
+      ),
+    0
   );
-  const ivaTotal = convertCurrency(
-    cartState.items.reduce((sum, item, idx) => sum + ivaDetails[idx].ivaProducto, 0)
+
+  const ivaTotal = cartState.items.reduce(
+    (sum, item, idx) =>
+      sum +
+      convertCurrency(
+        ivaDetails[idx].ivaProducto,
+        item.moneda_id
+      ),
+    0
   );
   const total = subtotalSinIVA + ivaTotal;
 
-  const formatPriceCart = (price: number): string => {
-    if (currency === "USD") {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        minimumFractionDigits: 2,
-      }).format(price);
-    } else {
-      return new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS",
-        minimumFractionDigits: 0,
-      }).format(price);
-    }
-  };
 
   const handleEditQuantity = (itemId: number, currentQuantity: number) => {
     setEditingItemId(itemId);
@@ -131,7 +137,7 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
                     </h3>
                     <p className="text-xs text-gray-500 line-clamp-2">{item.descripcion}</p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
-                      {formatPriceCart(item.precio_venta)}
+                      {formatPrice(item.precio_venta, item.moneda_id)}
                     </p>
                   </div>
 
@@ -198,17 +204,17 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
             {/* Subtotal */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Subtotal (sin IVA):</span>
-              <span className="text-lg font-bold text-gray-900">{formatPriceCart(subtotalSinIVA)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPrice(subtotalSinIVA, cartState.items[0]?.moneda_id || 2)}</span>
             </div>
             {/* IVA */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">IVA:</span>
-              <span className="text-lg font-bold text-gray-900">{formatPriceCart(ivaTotal)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPrice(ivaTotal, cartState.items[0]?.moneda_id || 2)}</span>
             </div>
             {/* Total */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-200">
               <span className="font-bold text-gray-900">Total:</span>
-              <span className="font-bold text-lg text-primary">{formatPriceCart(total)}</span>
+              <span className="font-bold text-lg text-primary">{formatPrice(total, cartState.items[0]?.moneda_id || 2)}</span>
             </div>
 
             {/* Buttons */}

@@ -212,7 +212,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("articulos")
-      .select("id, referencia, descripcion, precio_unitario, precio_venta, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, iva, ganancia", { count: "exact" })
+      .select("id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, iva, ganancia", { count: "exact" })
       .eq("activo", true)
 
     // Apply filters

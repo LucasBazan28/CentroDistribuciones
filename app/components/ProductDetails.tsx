@@ -113,13 +113,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             <div>
               <p className="text-sm text-gray-600">Precio (con IVA)</p>
               <p className="text-3xl font-bold text-gray-900">
-                {formatPrice(product.precio_venta)}
+                {formatPrice(product.precio_venta, product.moneda_id)}
               </p>
             </div>
           <div>
             <p className="text-sm text-gray-600">Precio sin impuestos</p>
             <p className="text-2xl font-semibold text-gray-700">
-              {isNaN(precioSinIVA) ? "N/A" : formatPrice(precioSinIVA)}
+              {isNaN(precioSinIVA) ? "N/A" : formatPrice(precioSinIVA, product.moneda_id)}
             </p>
           </div>
           </div>

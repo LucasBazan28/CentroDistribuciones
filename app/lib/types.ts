@@ -3,6 +3,7 @@ export interface Product {
   referencia: string;
   descripcion: string;
   precio_unitario: number;
+  moneda_id: number;
   stock: number;
   categoria_id: number | null;
   marca_id: number | null;
