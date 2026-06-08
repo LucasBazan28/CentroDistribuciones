@@ -108,7 +108,7 @@ export default function HeroBanner() {
                   <p className="text-lg text-white/85 mb-8 animate-slide-right">
                     {slide.subtitle}
                   </p>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7 lg:gap-2">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4 lg:gap-3">
                     {brands.map((brand) => (
                       <div
                         key={brand.name}
