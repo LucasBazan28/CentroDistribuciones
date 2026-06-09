@@ -24,9 +24,33 @@ export const metadata: Metadata = {
   title: "Centro Distribuciones | Distribuidor de Material Eléctrico e Industrial",
   description:
     "Distribuidor mayorista de material eléctrico e industrial. Automatización, protección, iluminación y cables. Envíos a todo el país.",
+  
+  keywords: [
+    "distribuidor de electricidad",
+    "material eléctrico",
+    "productos eléctricos",
+    "elementos eléctricos",
+    "automatización industrial",
+    "cables eléctricos",
+    "protecciones eléctricas",
+  ],
   icons: {
     icon: "/logos/LOGO-CENTRO-DISTRI-CD.png",
   },
+  openGraph: {
+    title:
+      "Centro Distribuciones | Distribuidor de Material Eléctrico",
+    description:
+      "Más de 40 años distribuyendo material eléctrico en Argentina.",
+    images: [
+      {
+        url: "/logos/LOGO-CENTRO-DISTRI-CD-abajo-CentDist.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  metadataBase: new URL("https://www.centrodistribuciones.ar"),
 };
 
 export default function RootLayout({
