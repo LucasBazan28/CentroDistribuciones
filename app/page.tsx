@@ -5,6 +5,7 @@ import FeaturedProducts from "./components/FeaturedProducts";
 import BrandsSection from "./components/BrandsSection";
 import CTASection from "./components/CTASection";
 import AdminButton from "./components/AdminButton";
+import SEOContent from "./components/SEOContent";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default function Home() {
       <ProductCategories />
       <FeaturedProducts />
       <BrandsSection />
+      <SEOContent />
       <CTASection />
     </main>
   );
