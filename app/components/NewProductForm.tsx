@@ -342,7 +342,7 @@ export default function NewProductForm() {
               id="precio_unitario"
               name="precio_unitario"
               type="number"
-              step="0.01"
+              step="0.0001"
               value={formData.precio_unitario}
               onChange={handleChange}
               required
