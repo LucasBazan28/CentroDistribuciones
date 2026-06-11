@@ -10,6 +10,7 @@ interface CartDrawerProps {
   onClose: () => void;
 }
 
+
 export default function CartDrawer({ onClose }: CartDrawerProps) {
   const router = useRouter();
   const { state: cartState, removeItem, updateQuantity } = useCart();
@@ -86,7 +87,21 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
     router.push("/cart");
     onClose();
   };
+  const formatPriceCart = (price: number): string => {
+    if (currency === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(price);
+    }
 
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
   return (
     <>
       {/* Backdrop */}
@@ -204,17 +219,17 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
             {/* Subtotal */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Subtotal (sin IVA):</span>
-              <span className="text-lg font-bold text-gray-900">{formatPrice(subtotalSinIVA, cartState.items[0]?.moneda_id || 2)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPriceCart(subtotalSinIVA)}</span>
             </div>
             {/* IVA */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600">IVA:</span>
-              <span className="text-lg font-bold text-gray-900">{formatPrice(ivaTotal, cartState.items[0]?.moneda_id || 2)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatPriceCart(ivaTotal)}</span>
             </div>
             {/* Total */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-200">
               <span className="font-bold text-gray-900">Total:</span>
-              <span className="font-bold text-lg text-primary">{formatPrice(total, cartState.items[0]?.moneda_id || 2)}</span>
+              <span className="font-bold text-lg text-primary">{formatPriceCart(total)}</span>
             </div>
 
             {/* Buttons */}
