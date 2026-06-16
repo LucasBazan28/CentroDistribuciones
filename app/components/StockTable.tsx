@@ -26,6 +26,8 @@ interface Articulo {
   categorias?: { nombre: string }
   iva: number
   ganancia: number
+  unidad_medida_id: number
+  unidad_medida?: { nombre: string }
 }
 
 interface StockTableProps {

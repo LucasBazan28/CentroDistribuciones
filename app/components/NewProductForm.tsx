@@ -29,6 +29,11 @@ interface Categoria {
   marca_id: number | null
 }
 
+interface unidadMedida {
+  id: number
+  nombre: string
+}
+
 export default function NewProductForm() {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -60,6 +65,7 @@ export default function NewProductForm() {
     imageURL: "",
     iva: "21",
     ganancia: "30",
+    unidad_medida_id: "1",
   })
 
   useEffect(() => {
@@ -111,6 +117,7 @@ export default function NewProductForm() {
       imageURL: "",
       iva: "21",
       ganancia: "30",
+      unidad_medida_id: "1",
     })
     setGruposDescuentoFiltrados([])
     setCategoriasFiltradas([])
