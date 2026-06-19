@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       moneda_id,
       stock_minimo = 0,
       stock = 0,
+      unidad_medida_id,
       observacion,
       marca_id,
       grupo_descuento_id,
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
           moneda_id: parseInt(moneda_id),
           stock_minimo: parseInt(stock_minimo),
           stock: parseInt(stock),
+          unidad_medida_id: unidad_medida_id ? parseInt(unidad_medida_id) : null,
           observacion: observacion || null,
           marca_id: parseInt(marca_id),
           grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
@@ -123,7 +125,7 @@ export async function POST(request: Request) {
     // Fetch the complete product with relations
     const { data: completeData, error: fetchError } = await supabase
       .from("articulos")
-      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre), unidad_medida(nombre)")
       .eq("id", data[0].id)
       .maybeSingle()
 
@@ -177,7 +179,7 @@ export async function GET(request: Request) {
 
       let query = supabase
         .from("articulos")
-        .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+        .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre), unidad_medida(nombre)")
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
 
@@ -212,7 +214,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("articulos")
-      .select("id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, categoria_id, marca_id, grupo_descuento_id, imageURL, iva, ganancia", { count: "exact" })
+      .select("id, referencia, descripcion, precio_unitario, precio_venta, moneda_id, stock, unidad_medida_id, categoria_id, marca_id, grupo_descuento_id, imageURL, iva, ganancia", { count: "exact" })
       .eq("activo", true)
 
     // Apply filters
@@ -341,6 +343,7 @@ export async function PUT(request: Request) {
       moneda_id,
       stock_minimo = 0,
       stock = 0,
+      unidad_medida_id,
       observacion,
       marca_id,
       grupo_descuento_id,
@@ -413,6 +416,7 @@ export async function PUT(request: Request) {
         moneda_id: parseInt(moneda_id),
         stock_minimo: parseInt(stock_minimo),
         stock: parseInt(stock),
+        unidad_medida_id: unidad_medida_id ? parseInt(unidad_medida_id) : null,
         observacion: observacion || null,
         marca_id: parseInt(marca_id),
         grupo_descuento_id: grupo_descuento_id ? parseInt(grupo_descuento_id) : null,
@@ -443,7 +447,7 @@ export async function PUT(request: Request) {
     // Fetch the complete product with relations
     const { data: completeData, error: fetchError } = await supabase
       .from("articulos")
-      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre)")
+      .select("*, marcas(nombre), grupo_descuento(nombre), categorias(nombre), unidad_medida(nombre)")
       .eq("id", id)
       .maybeSingle()
 

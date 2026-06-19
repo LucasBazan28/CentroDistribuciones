@@ -5,6 +5,7 @@ export interface Product {
   precio_unitario: number;
   moneda_id: number;
   stock: number;
+  unidad_medida?: { nombre: string } | null;
   categoria_id: number | null;
   marca_id: number | null;
   categorias?: { nombre: string } | null;
@@ -26,7 +27,10 @@ export interface Brand {
   id: number;
   nombre: string;
 }
-
+export interface UnidadMedida {
+  id: number;
+  nombre: string;
+}
 export interface FilterState {
   category: string | null;
   brand: string | null;
