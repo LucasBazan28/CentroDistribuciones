@@ -45,6 +45,7 @@ export default function NewProductForm() {
   const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<GrupoDescuento[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [categoriasFiltradas, setCategoriasFiltradas] = useState<Categoria[]>([])
+  const [unidadMedida, setUnidadMedida] = useState<unidadMedida[]>([])
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
@@ -58,6 +59,7 @@ export default function NewProductForm() {
     moneda_id: "2",
     stock_minimo: "0",
     stock: "0",
+    unidad_medida_id: "1",
     observacion: "",
     marca_id: "",
     grupo_descuento_id: "",
@@ -65,7 +67,6 @@ export default function NewProductForm() {
     imageURL: "",
     iva: "21",
     ganancia: "30",
-    unidad_medida_id: "1",
   })
 
   useEffect(() => {
@@ -89,6 +90,11 @@ export default function NewProductForm() {
         const categoriasRes = await supabase.from("categorias").select("*").order("nombre")
         if (categoriasRes.error) throw categoriasRes.error
         setCategorias(categoriasRes.data || [])
+
+        const unidadRes = await supabase.from("unidad_medida").select("*").order("nombre")
+        if (unidadRes.error) throw unidadRes.error
+        setUnidadMedida(unidadRes.data || [])
+
       } catch (err) {
         const message = err instanceof Error ? err.message : "Error loading data"
         setError(`Failed to load form data: ${message}`)
@@ -110,6 +116,7 @@ export default function NewProductForm() {
       moneda_id: "2",
       stock_minimo: "0",
       stock: "0",
+      unidad_medida_id: "1",
       observacion: "",
       marca_id: "",
       grupo_descuento_id: "",
@@ -117,7 +124,6 @@ export default function NewProductForm() {
       imageURL: "",
       iva: "21",
       ganancia: "30",
-      unidad_medida_id: "1",
     })
     setGruposDescuentoFiltrados([])
     setCategoriasFiltradas([])
@@ -414,7 +420,27 @@ export default function NewProductForm() {
             />
           </div>
         </div>
-
+        <div>
+          <label htmlFor="unidad_medida_id" className="block text-sm font-medium text-gray-700 mb-2">
+            Unidad de Medida <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="unidad_medida_id"
+            name="unidad_medida_id"
+            value={formData.unidad_medida_id}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">Seleccionar unidad</option>
+              {unidadMedida.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.nombre}
+                </option>
+              ))}
+          </select>
+        </div>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="iva" className="block text-sm font-medium text-gray-700 mb-2">
@@ -450,7 +476,6 @@ export default function NewProductForm() {
             />
           </div>
         </div>
-      </div>
 
       {/* Product Details */}
       <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-6">

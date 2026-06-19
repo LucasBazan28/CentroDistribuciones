@@ -53,6 +53,7 @@ export default function StockTable({ initialData, preselectedMarcaId }: StockTab
   const [gruposDescuentoFiltrados, setGruposDescuentoFiltrados] = useState<any[]>([])
   const [categoriasFiltradas, setCategoriasFiltradas] = useState<any[]>([])
   const [categoriasFiltrosSuperior, setCategoriasFiltrosSuperior] = useState<any[]>([])
+  const [unidadMedida, setUnidadMedida] = useState<any[]>([])
   const [allGruposDescuento, setAllGruposDescuento] = useState<any[]>([])
   const [allCategorias, setAllCategorias] = useState<any[]>([])
   const [allMarcas, setAllMarcas] = useState<any[]>([])
@@ -162,6 +163,11 @@ export default function StockTable({ initialData, preselectedMarcaId }: StockTab
         const marcasRes = await supabase.from("marcas").select("*").order("nombre")
         if (marcasRes.error) throw marcasRes.error
         setAllMarcas(marcasRes.data || [])
+
+        const unidadRes = await supabase.from("unidad_medida").select("*").order("nombre")
+        if (unidadRes.error) throw unidadRes.error
+        setUnidadMedida(unidadRes.data || [])
+
       } catch (err) {
         console.error("Failed to load dropdown data:", err)
       }
@@ -316,6 +322,7 @@ export default function StockTable({ initialData, preselectedMarcaId }: StockTab
           moneda_id: editingData.moneda_id,
           stock_minimo: editingData.stock_minimo,
           stock: editingData.stock,
+          unidad_medida_id: editingData.unidad_medida_id,
           observacion: editingData.observacion,
           marca_id: editingData.marca_id,
           grupo_descuento_id: editingData.grupo_descuento_id,
@@ -790,7 +797,22 @@ export default function StockTable({ initialData, preselectedMarcaId }: StockTab
                 disabled={isLoading}
               />
             </div>
-
+            {/* Unidad de Medida */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Unidad de Medida</label>
+              <select
+                value={editingData.unidad_medida_id}
+                onChange={(e) => setEditingData({ ...editingData, unidad_medida_id: e.target.value ? Number(e.target.value) : 0 })}                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isLoading}
+              >
+                <option value="">Seleccionar unidad</option>
+                {unidadMedida.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
             {/* Observación */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Observación</label>

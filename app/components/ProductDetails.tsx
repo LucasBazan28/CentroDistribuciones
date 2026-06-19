@@ -166,7 +166,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   ? "text-yellow-600"
                   : "text-green-600"
               }`}>
-                {product.stock} {product.stock === 1 ? "unidad" : "unidades"}
+                {product.stock} {product.unidad_medida?.nombre ?? "unidades"}
               </span>
             </div>
           </div>
