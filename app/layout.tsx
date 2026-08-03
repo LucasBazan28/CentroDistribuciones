@@ -21,9 +21,17 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Centro Distribuciones | Distribuidor de Material Eléctrico e Industrial",
+  metadataBase: new URL("https://www.centrodistribuciones.ar"),
+  
+  alternates: {
+    canonical: "/",
+  },
+  
+  title: "Centro Distribuciones | Distribuidor de Material Eléctrico",
+  
   description:
-    "Distribuidor mayorista de material eléctrico e industrial. Automatización, protección, iluminación y cables. Envíos a todo el país.",
+    "Materiales eléctricos para industria y obras. Distribuidor oficial de marcas líderes. Asesoramiento técnico especializado.",
+  
   
   keywords: [
     "distribuidor de electricidad",
@@ -34,14 +42,17 @@ export const metadata: Metadata = {
     "cables eléctricos",
     "protecciones eléctricas",
   ],
+  
   icons: {
     icon: "/logos/LOGO-CENTRO-DISTRI-CD.png",
+    apple: "/logos/LOGO-CENTRO-DISTRI-CD.png",
   },
+  
   openGraph: {
     title:
       "Centro Distribuciones | Distribuidor de Material Eléctrico",
     description:
-      "Más de 40 años distribuyendo material eléctrico en Argentina.",
+      "Materiales eléctricos para industria y obras. Distribuidor oficial de marcas líderes. Asesoramiento técnico especializado",
     images: [
       {
         url: "/logos/LOGO-CENTRO-DISTRI-CD-abajo-CentDist.png",
@@ -50,7 +61,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  metadataBase: new URL("https://www.centrodistribuciones.ar"),
 };
 
 export default function RootLayout({
