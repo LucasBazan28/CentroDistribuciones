@@ -32,10 +32,10 @@ export default function CTASection() {
               Envianos tu lista de materiales y te cotizamos en el día.
             </p>
             <a
-              href="mailto:distribucionzoloda.bb@gmail.com.ar"
+              href="mailto:distribucionzoloda.bb@gmail.com"
               className="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-dark"
             >
-              distribucionzoloda.bb@gmail.com.ar
+              distribucionzoloda.bb@gmail.com
             </a>
           </div>
 
