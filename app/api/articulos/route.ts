@@ -234,6 +234,15 @@ export async function GET(request: Request) {
       query = query.lte("precio_venta", maxPrice)
     }
 
+    // Search in the database (before pagination) so every page is searched
+    if (search) {
+      // Strip characters that break PostgREST's .or() filter syntax
+      const s = search.replace(/[,()%*\\]/g, " ").trim()
+      if (s) {
+        query = query.or(`referencia.ilike.%${s}%,descripcion.ilike.%${s}%`)
+      }
+    }
+
     const { data: allData, error } = await query
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
@@ -246,19 +255,7 @@ export async function GET(request: Request) {
       )
     }
 
-    // Apply search filter if provided
-    let filteredData = allData || []
-    if (search) {
-      filteredData = filteredData.filter((item: any) => {
-        const searchFields = [
-          item.referencia,
-          item.descripcion,
-        ]
-        return searchFields.some((field: string) =>
-          field.toLowerCase().includes(search)
-        )
-      })
-    }
+    const filteredData = allData || []
 
     // Fetch relations separately to avoid JOIN issues
     const marcasMap = new Map()
