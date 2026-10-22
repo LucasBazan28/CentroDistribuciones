@@ -140,6 +140,18 @@ export default function Footer() {
             los derechos reservados.
           </p>
           <div className="flex gap-4 text-xs text-gray-500">
+            Diseñado y desarrollado por{" "}
+            <a
+              href="https://lucasbazan28.github.io/portafolio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-300"
+            >
+              Lucas Bazan
+            </a>
+          </div>
+
+          <div className="flex gap-4 text-xs text-gray-500">
             <a href="#" className="hover:text-gray-300">
               Política de Privacidad
             </a>
