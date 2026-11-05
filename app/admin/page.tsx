@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Package, Home, Percent, Tag, Folder } from "lucide-react";
+import { Plus, Package, Home, Percent, Tag, Folder, Receipt, Users } from "lucide-react";
 
 export default function AdminPage() {
   return (
@@ -8,11 +8,37 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
-          <p className="text-gray-600">Gestiona tus productos e inventario</p>
+          <p className="text-gray-600">Gestiona tus ventas, clientes, productos e inventario</p>
         </div>
 
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Register Sale Card */}
+          <Link
+            href="/admin/manageSales"
+            className="group h-48 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary p-8 flex flex-col justify-center items-center text-center hover:scale-105"
+          >
+            <Receipt
+              size={48}
+              className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Registrar Venta</h2>
+            <p className="text-gray-600">Cargá facturas y notas de crédito</p>
+          </Link>
+
+          {/* Register Client Card */}
+          <Link
+            href="/admin/manageClients"
+            className="group h-48 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary p-8 flex flex-col justify-center items-center text-center hover:scale-105"
+          >
+            <Users
+              size={48}
+              className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Registrar Cliente</h2>
+            <p className="text-gray-600">Agregá y administrá tus clientes</p>
+          </Link>
+
           {/* New Product Card */}
           <Link
             href="/admin/newProduct"
