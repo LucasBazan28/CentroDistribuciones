@@ -16,14 +16,15 @@ export default function SEOContent() {
             <div className="space-y-6 text-gray-600 leading-relaxed">
             <p>
                 En Centro Distribuciones ofrecemos una amplia variedad de productos
-                eléctricos para aplicaciones residenciales, comerciales e
-                industriales...
+                eléctricos para aplicaciones residenciales, comerciales,
+                industriales y obras.
             </p>
 
             <p>
-                Comercializamos cables eléctricos, iluminación, automatización
+                Comercializamos cables eléctricos, térmicas, automatización
                 industrial, protecciones eléctricas, tableros y elementos
-                eléctricos de primeras marcas...
+                eléctricos de primeras marcas.
+                Ideal para electricistas, tableristas e instaladores que buscan calidad y confiabilidad en sus proyectos.
             </p>
 
             <p>
