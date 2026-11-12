@@ -37,7 +37,7 @@ export default function ManageClientsClient() {
     if (!q) return clientes
     const qDigits = onlyDigits(q)
     return clientes.filter(
-      (c) => c.razon_social.toLowerCase().includes(q) || (qDigits && c.cuit.includes(qDigits))
+      (c) => c.razon_social.toLowerCase().includes(q) || (qDigits && c.cuit?.includes(qDigits))
     )
   }, [clientes, search])
 
@@ -159,7 +159,7 @@ export default function ManageClientsClient() {
                 <tbody>
                   {filtered.map((c, idx) => (
                     <tr key={c.id} className={`border-b border-gray-200 ${idx % 2 ? "bg-gray-50" : "bg-white"}`}>
-                      <td className="px-4 py-3 font-mono text-gray-700 whitespace-nowrap">{formatCuit(c.cuit)}</td>
+                      <td className="px-4 py-3 font-mono text-gray-700 whitespace-nowrap">{c.cuit ? formatCuit(c.cuit) : <span className="font-sans text-xs text-gray-400">Sin CUIT</span>}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{c.razon_social}</td>
                       <td className="px-4 py-3 text-gray-600">
                         {[c.email, c.telefono].filter(Boolean).join(" · ") || "—"}

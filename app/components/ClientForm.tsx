@@ -34,7 +34,7 @@ export default function ClientForm({ initial, initialRazonSocial, onSaved, onCan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.razon_social.trim()) return setError("La razón social es obligatoria")
-    if (!isValidCuit(cuitDigits)) return setError("El CUIT no es válido")
+    if (cuitDigits && !isValidCuit(cuitDigits)) return setError("El CUIT no es válido")
 
     setSaving(true)
     setError("")
@@ -58,9 +58,7 @@ export default function ClientForm({ initial, initialRazonSocial, onSaved, onCan
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            CUIT <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">CUIT / CUIL</label>
           <input
             type="text"
             inputMode="numeric"
@@ -71,7 +69,13 @@ export default function ClientForm({ initial, initialRazonSocial, onSaved, onCan
             className={`${inputClass} ${cuitInvalid ? "border-red-400" : ""}`}
             autoFocus={!initialRazonSocial}
           />
-          {cuitInvalid && <p className="mt-1 text-xs text-red-600">El dígito verificador no coincide</p>}
+          {cuitInvalid ? (
+            <p className="mt-1 text-xs text-red-600">El dígito verificador no coincide</p>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              Dejalo vacío solo para consumidores finales sin CUIT (no podrán recibir facturas A, M o de crédito).
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
