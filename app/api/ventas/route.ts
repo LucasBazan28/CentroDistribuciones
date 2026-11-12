@@ -14,6 +14,40 @@ export const dynamic = "force-dynamic"
 
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6
 
+const SELECT_VENTA =
+  "*, clientes(cuit, razon_social), ventas_items(id, articulo_id, descripcion, cantidad, precio_unitario_ars, alicuota_iva, subtotal_ars, articulos(referencia))"
+
+interface ItemInput {
+  articulo_id: number | null
+  descripcion: string
+  cantidad: number
+  precio_unitario_ars: number
+  alicuota_iva: number
+  subtotal_ars: number
+}
+
+// Validates the optional sale lines. Returns the normalized lines or an error message.
+function parseItems(raw: unknown): { items: ItemInput[] } | { error: string } {
+  if (raw == null) return { items: [] }
+  if (!Array.isArray(raw)) return { error: "El detalle de artículos no es válido" }
+  const items: ItemInput[] = []
+  for (const [i, r] of raw.entries()) {
+    const n = i + 1
+    const descripcion = typeof r?.descripcion === "string" ? r.descripcion.trim() : ""
+    const cantidad = Math.round(Number(r?.cantidad) * 1000) / 1000
+    const precio = round2(Number(r?.precio_unitario_ars))
+    const alicuota = Number(r?.alicuota_iva ?? 21)
+    const articulo_id = r?.articulo_id == null || r.articulo_id === "" ? null : Number(r.articulo_id)
+    if (!descripcion) return { error: `Renglón ${n}: falta la descripción` }
+    if (!(cantidad > 0)) return { error: `Renglón ${n}: la cantidad debe ser mayor a 0` }
+    if (!(precio >= 0)) return { error: `Renglón ${n}: el precio no es válido` }
+    if (!(alicuota >= 0 && alicuota <= 100)) return { error: `Renglón ${n}: la alícuota no es válida` }
+    if (articulo_id !== null && !(articulo_id > 0)) return { error: `Renglón ${n}: artículo inválido` }
+    items.push({ articulo_id, descripcion, cantidad, precio_unitario_ars: precio, alicuota_iva: alicuota, subtotal_ars: round2(cantidad * precio) })
+  }
+  return { items }
+}
+
 // GET /api/ventas?anio=2026&mes=10        -> ventas del período
 // GET /api/ventas?siguiente=A       -> próximo número de comprobante sugerido
 export async function GET(request: Request) {
@@ -45,7 +79,7 @@ export async function GET(request: Request) {
 
   let query = supabase
     .from("ventas")
-    .select("*, clientes(cuit, razon_social)")
+    .select(SELECT_VENTA)
     .order("fecha", { ascending: true })
     .order("created_at", { ascending: true })
 
@@ -83,8 +117,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Seleccioná un cliente para la ${tipoEnTexto(tipo)}` }, { status: 400 })
   }
 
-  // Signed amounts: NC always negative, the rest as entered.
-  const neto_ars = round2(applySign(tipo, Number(body.neto_ars)))
+  const parsed = parseItems(body.items)
+  if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const { items } = parsed
+
+  // Signed amounts: NC always negative, the rest as entered. With lines, the net is their sum.
+  const netoBase = items.length ? items.reduce((acc, it) => acc + it.subtotal_ars, 0) : Number(body.neto_ars)
+  const neto_ars = round2(applySign(tipo, netoBase))
   const iva_ars = round2(applySign(tipo, Number(body.iva_ars ?? 0)))
   if (!Number.isFinite(neto_ars) || neto_ars === 0) {
     return NextResponse.json({ error: "El importe neto no puede ser 0" }, { status: 400 })
@@ -147,14 +186,29 @@ export async function POST(request: Request) {
       total_usd: round6((neto_ars + iva_ars) / dolar),
       observacion: typeof body.observacion === "string" && body.observacion.trim() ? body.observacion.trim() : null,
     }])
-    .select("*, clientes(cuit, razon_social)")
+    .select("id")
     .single()
 
   if (error) {
     console.error("Database error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-  return NextResponse.json(data, { status: 201 })
+
+  if (items.length) {
+    const { error: itemsError } = await supabase
+      .from("ventas_items")
+      .insert(items.map((it) => ({ ...it, venta_id: data.id })))
+    if (itemsError) {
+      // No transactions over the REST API: undo the sale so it is not left without its lines.
+      await supabase.from("ventas").delete().eq("id", data.id)
+      console.error("Database error:", itemsError)
+      return NextResponse.json({ error: `No se pudo guardar el detalle: ${itemsError.message}` }, { status: 500 })
+    }
+  }
+
+  const { data: venta, error: readError } = await supabase.from("ventas").select(SELECT_VENTA).eq("id", data.id).single()
+  if (readError) return NextResponse.json({ error: readError.message }, { status: 500 })
+  return NextResponse.json(venta, { status: 201 })
 }
 
 export async function DELETE(request: Request) {

@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, CheckCircle, Download, Loader2, Plus, Trash2, UserPlus, X } from "lucide-react"
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
+import { AlertCircle, CheckCircle, ChevronDown, ChevronRight, Download, Loader2, Plus, Trash2, UserPlus, X } from "lucide-react"
 import BackToAdminButton from "@/app/components/BackToAdminButton"
 import ClientForm from "@/app/components/ClientForm"
+import SaleItemsEditor, { ItemForm, errorItems, itemsParaEnviar, totalesItems } from "./SaleItemsEditor"
 import { useExchangeRate } from "@/app/lib/exchangeRateContext"
 import {
   Cliente,
@@ -81,6 +82,8 @@ export default function ManageSalesClient() {
 
   const [form, setForm] = useState(emptyForm)
   const [ivaTouched, setIvaTouched] = useState(false)
+  const [items, setItems] = useState<ItemForm[]>([])
+  const [expandida, setExpandida] = useState<number | null>(null)
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [consumidorFinal, setConsumidorFinal] = useState(false)
   const [clienteQuery, setClienteQuery] = useState("")
@@ -141,8 +144,15 @@ export default function ManageSalesClient() {
   }, [loadVentas])
 
   // Derived amounts (as they will be stored: NC in negative)
-  const netoInput = parseAmount(form.neto)
-  const autoIva = Number.isFinite(netoInput) ? round2((netoInput * Number(form.alicuota)) / 100) : NaN
+  // With line items, neto and IVA come from the lines (each line has its own rate).
+  const conItems = items.length > 0
+  const totItems = totalesItems(items)
+  const netoInput = conItems ? totItems.neto : parseAmount(form.neto)
+  const autoIva = conItems
+    ? totItems.iva
+    : Number.isFinite(netoInput)
+      ? round2((netoInput * Number(form.alicuota)) / 100)
+      : NaN
   const ivaInput = ivaTouched ? parseAmount(form.iva) : autoIva
   const neto = applySign(form.tipo, netoInput)
   const iva = applySign(form.tipo, ivaInput)
@@ -189,6 +199,8 @@ export default function ManageSalesClient() {
       return setError(`La ${tipoEnTexto(form.tipo)} requiere un cliente con CUIT. Editá el cliente o elegí otro tipo.`)
     }
     if (!padComprobante(form.nro_comprobante)) return setError("Ingresá el número de comprobante")
+    const errItems = errorItems(items)
+    if (errItems) return setError(errItems)
     if (!Number.isFinite(neto) || neto === 0) return setError("Ingresá un importe neto válido")
     if (!Number.isFinite(iva)) return setError("El IVA no es válido")
     if (!(dolar > 0)) return setError("Ingresá la cotización del dólar")
@@ -206,6 +218,7 @@ export default function ManageSalesClient() {
           iva_ars: iva,
           dolar,
           observacion: form.observacion,
+          items: itemsParaEnviar(items),
           permitir_duplicado,
         }),
       })
@@ -233,6 +246,7 @@ export default function ManageSalesClient() {
       // Keep type, date and dollar for the next entry
       setForm((f) => ({ ...emptyForm(f.tipo), fecha: f.fecha, dolar: f.dolar }))
       setIvaTouched(false)
+      setItems([])
       setCliente(null)
       setClienteQuery("")
       suggestNumber(form.tipo)
@@ -501,6 +515,15 @@ export default function ManageSalesClient() {
               )}
             </div>
 
+            <SaleItemsEditor
+              items={items}
+              onChange={(next) => {
+                setItems(next)
+                setIvaTouched(false)
+              }}
+              dolar={dolar}
+            />
+
             {/* Amounts */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="col-span-2 md:col-span-1">
@@ -510,22 +533,27 @@ export default function ManageSalesClient() {
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={form.neto}
+                  value={conItems ? (Number.isFinite(netoInput) ? netoInput.toFixed(2).replace(".", ",") : "") : form.neto}
                   onChange={(e) => setForm({ ...form, neto: e.target.value })}
+                  readOnly={conItems}
+                  title={conItems ? "Suma de los renglones del detalle" : undefined}
                   placeholder="320592,89"
-                  className={inputClass}
+                  className={`${inputClass} ${conItems ? "bg-gray-50" : ""}`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Alícuota IVA</label>
                 <select
-                  value={form.alicuota}
+                  value={conItems ? "" : form.alicuota}
+                  disabled={conItems}
+                  title={conItems ? "Con detalle, cada renglón tiene su alícuota" : undefined}
                   onChange={(e) => {
                     setForm({ ...form, alicuota: e.target.value })
                     setIvaTouched(false)
                   }}
                   className={inputClass}
                 >
+                  {conItems && <option value="">Por renglón</option>}
                   {ALICUOTAS.map((a) => (
                     <option key={a} value={a}>{a.replace(".", ",")}%</option>
                   ))}
@@ -665,13 +693,30 @@ export default function ManageSalesClient() {
                 <tbody>
                   {ventas.map((v, idx) => {
                     const color = v.tipo === "NC" ? "text-red-600" : v.tipo === "ND" ? "text-amber-700" : "text-gray-900"
+                    const vItems = v.ventas_items ?? []
+                    const abierta = expandida === v.id
                     return (
+                      <Fragment key={v.id}>
                       <tr
-                        key={v.id}
                         className={`border-b border-gray-200 ${color} ${idx % 2 ? "bg-slate-50" : "bg-white"}`}
                         title={v.observacion ?? undefined}
                       >
-                        <td className="px-3 py-2 font-mono font-semibold" title={TIPO_LABEL[v.tipo]}>{v.tipo}</td>
+                        <td className="px-3 py-2 font-mono font-semibold" title={TIPO_LABEL[v.tipo]}>
+                          {vItems.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => setExpandida(abierta ? null : v.id)}
+                              className="flex items-center gap-1"
+                              title={`${vItems.length} artículo${vItems.length === 1 ? "" : "s"}`}
+                            >
+                              {abierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              {v.tipo}
+                              <span className="rounded bg-primary/10 px-1 text-[10px] font-semibold text-primary">{vItems.length}</span>
+                            </button>
+                          ) : (
+                            <span className="pl-[18px]">{v.tipo}</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 font-mono">{v.nro_comprobante}</td>
                         <td className="px-3 py-2">{formatFecha(v.fecha)}</td>
                         <td className="px-3 py-2 font-mono">{v.clientes?.cuit ?? ""}</td>
@@ -696,6 +741,38 @@ export default function ManageSalesClient() {
                           </button>
                         </td>
                       </tr>
+                      {abierta && (
+                        <tr className="border-b border-gray-200 bg-white">
+                          <td />
+                          <td colSpan={12} className="px-3 py-3">
+                            <table className="text-xs text-gray-700">
+                              <thead className="text-gray-500">
+                                <tr>
+                                  <th className="pr-6 text-left font-medium">Referencia</th>
+                                  <th className="pr-6 text-left font-medium">Descripción</th>
+                                  <th className="pr-6 text-right font-medium">Cant.</th>
+                                  <th className="pr-6 text-right font-medium">Precio unit. neto</th>
+                                  <th className="pr-6 text-right font-medium">IVA</th>
+                                  <th className="text-right font-medium">Subtotal neto</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {vItems.map((it) => (
+                                  <tr key={it.id}>
+                                    <td className="pr-6 font-mono">{it.articulos?.referencia ?? "—"}</td>
+                                    <td className="max-w-md truncate pr-6">{it.descripcion}</td>
+                                    <td className="pr-6 text-right">{Number(it.cantidad).toLocaleString("es-AR")}</td>
+                                    <td className="pr-6 text-right">{formatARS(it.precio_unitario_ars)}</td>
+                                    <td className="pr-6 text-right">{String(it.alicuota_iva).replace(".", ",")}%</td>
+                                    <td className="text-right">{formatARS(it.subtotal_ars)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
                     )
                   })}
                 </tbody>

@@ -30,6 +30,18 @@ export interface Cliente {
   direccion: string | null
 }
 
+// One line of a sale. Amounts are always positive and net of IVA; the sale's type gives the sign.
+export interface VentaItem {
+  id?: number
+  articulo_id: number | null
+  descripcion: string
+  cantidad: number
+  precio_unitario_ars: number
+  alicuota_iva: number
+  subtotal_ars: number
+  articulos?: { referencia: string } | null
+}
+
 // Los importes se guardan con signo, como en el Excel: las notas de crédito en negativo.
 export interface Venta {
   id: number
@@ -47,6 +59,7 @@ export interface Venta {
   total_usd: number
   observacion: string | null
   clientes: { cuit: string | null; razon_social: string } | null
+  ventas_items?: VentaItem[]
 }
 
 // Aplica el signo que corresponde al tipo: NC siempre resta; el resto se guarda como se ingresó

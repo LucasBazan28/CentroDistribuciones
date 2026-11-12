@@ -265,18 +265,19 @@ export function clientesParaPorcentaje(ranking: ClienteStats[], objetivo: number
 
 export type TipoEstacionalidad = "fin" | "mitad" | "otro" | "parejo"
 
-export interface EstacionalidadCliente {
-  id: number
-  shares: number[] // share of the client's sales by calendar month (all years together)
+export interface Estacionalidad {
+  shares: number[] // share of sales by calendar month (all years together)
   ventana: { desde: number; share: number } // best 3-month window (0-based start month, wraps around)
   tipo: TipoEstacionalidad
 }
 
-// Seasonality per client, in U$S. A client is seasonal when 3 consecutive months concentrate
-// at least half of its purchases (twice what an even spread would give).
-export function estacionalidadCliente(ventas: VentaResumen[], id: number): EstacionalidadCliente {
-  const porMes = new Array(12).fill(0)
-  for (const v of ventas) if (v.cliente_id === id) porMes[mesDe(v.fecha) - 1] += v.neto_usd
+export interface EstacionalidadCliente extends Estacionalidad {
+  id: number
+}
+
+// Seasonality from amounts per calendar month (Jan..Dec). Seasonal when 3 consecutive months
+// concentrate at least half of the total (twice what an even spread would give).
+export function estacionalidadDeMeses(porMes: number[]): Estacionalidad {
   const positivos = porMes.map((x) => Math.max(0, x))
   const total = positivos.reduce((a, b) => a + b, 0)
   const shares = positivos.map((x) => (total ? x / total : 0))
@@ -289,7 +290,14 @@ export function estacionalidadCliente(ventas: VentaResumen[], id: number): Estac
   const centro = (mejor.desde + 1) % 12
   const tipo: TipoEstacionalidad =
     mejor.share < 0.5 ? "parejo" : [10, 11, 0].includes(centro) ? "fin" : [5, 6, 7].includes(centro) ? "mitad" : "otro"
-  return { id, shares, ventana: mejor, tipo }
+  return { shares, ventana: mejor, tipo }
+}
+
+// Seasonality per client, in U$S.
+export function estacionalidadCliente(ventas: VentaResumen[], id: number): EstacionalidadCliente {
+  const porMes = new Array(12).fill(0)
+  for (const v of ventas) if (v.cliente_id === id) porMes[mesDe(v.fecha) - 1] += v.neto_usd
+  return { id, ...estacionalidadDeMeses(porMes) }
 }
 
 export function etiquetaVentana(desde: number) {
