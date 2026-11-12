@@ -7,9 +7,14 @@ import ClientForm from "@/app/components/ClientForm"
 import { useExchangeRate } from "@/app/lib/exchangeRateContext"
 import {
   Cliente,
+  TIPOS,
+  TIPOS_REQUIEREN_CUIT,
+  TIPOS_SIN_CLIENTE,
   TIPO_LABEL,
   TipoComprobante,
   Venta,
+  applySign,
+  tipoEnTexto,
   formatARS,
   formatCuit,
   formatFecha,
@@ -25,6 +30,19 @@ const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ]
 const ALICUOTAS = ["21", "10.5", "27", "0"]
+const PRIMER_ANIO = 2020
+
+// Factura B shows IVA included, so (as in the Excel) its IVA is not broken out by default.
+const defaultAlicuota = (tipo: TipoComprobante) => (tipo === "B" ? "0" : "21")
+
+const TIPO_ACTIVE_CLASS: Record<TipoComprobante, string> = {
+  A: "bg-primary text-white",
+  B: "bg-primary text-white",
+  M: "bg-primary text-white",
+  FC: "bg-primary text-white",
+  NC: "bg-red-600 text-white",
+  ND: "bg-amber-600 text-white",
+}
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -37,16 +55,12 @@ function parseAmount(value: string) {
   return Number(normalized)
 }
 
-function signed(v: Venta, n: number) {
-  return v.tipo === "nota_credito" ? -n : n
-}
-
-const emptyForm = () => ({
-  tipo: "factura" as TipoComprobante,
+const emptyForm = (tipo: TipoComprobante = "A") => ({
+  tipo,
   nro_comprobante: "",
   fecha: todayISO(),
   neto: "",
-  alicuota: "21",
+  alicuota: defaultAlicuota(tipo),
   iva: "",
   dolar: "",
   observacion: "",
@@ -68,6 +82,7 @@ export default function ManageSalesClient() {
   const [form, setForm] = useState(emptyForm)
   const [ivaTouched, setIvaTouched] = useState(false)
   const [cliente, setCliente] = useState<Cliente | null>(null)
+  const [consumidorFinal, setConsumidorFinal] = useState(false)
   const [clienteQuery, setClienteQuery] = useState("")
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [creatingClient, setCreatingClient] = useState(false)
@@ -125,19 +140,24 @@ export default function ManageSalesClient() {
     loadVentas()
   }, [loadVentas])
 
-  // Derived amounts
-  const neto = parseAmount(form.neto)
-  const autoIva = Number.isFinite(neto) ? round2((neto * Number(form.alicuota)) / 100) : NaN
-  const iva = ivaTouched ? parseAmount(form.iva) : autoIva
+  // Derived amounts (as they will be stored: NC in negative)
+  const netoInput = parseAmount(form.neto)
+  const autoIva = Number.isFinite(netoInput) ? round2((netoInput * Number(form.alicuota)) / 100) : NaN
+  const ivaInput = ivaTouched ? parseAmount(form.iva) : autoIva
+  const neto = applySign(form.tipo, netoInput)
+  const iva = applySign(form.tipo, ivaInput)
   const total = Number.isFinite(neto) && Number.isFinite(iva) ? round2(neto + iva) : NaN
   const dolar = parseAmount(form.dolar)
+  const permiteSinCliente = TIPOS_SIN_CLIENTE.includes(form.tipo)
+  const sinCliente = permiteSinCliente && consumidorFinal
+  const requiereCuit = TIPOS_REQUIEREN_CUIT.includes(form.tipo)
 
   const suggestions = useMemo(() => {
     const q = clienteQuery.trim().toLowerCase()
     if (!q) return clientes.slice(0, 8)
     const qDigits = onlyDigits(q)
     return clientes
-      .filter((c) => c.razon_social.toLowerCase().includes(q) || (qDigits && c.cuit.includes(qDigits)))
+      .filter((c) => c.razon_social.toLowerCase().includes(q) || (qDigits && c.cuit?.includes(qDigits)))
       .slice(0, 8)
   }, [clientes, clienteQuery])
 
@@ -147,44 +167,71 @@ export default function ManageSalesClient() {
     setShowSuggestions(false)
   }
 
+  const changeTipo = (tipo: TipoComprobante) => {
+    setForm((f) => ({ ...f, tipo, nro_comprobante: "", alicuota: defaultAlicuota(tipo) }))
+    setIvaTouched(false)
+    if (!TIPOS_SIN_CLIENTE.includes(tipo)) setConsumidorFinal(false)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setSuccess("")
 
-    if (!cliente) return setError("Seleccioná un cliente (o registralo si es nuevo)")
+    if (!sinCliente && !cliente) {
+      return setError(
+        permiteSinCliente
+          ? "Seleccioná un cliente o marcá \"Consumidor final sin identificar\""
+          : "Seleccioná un cliente (o registralo si es nuevo)"
+      )
+    }
+    if (cliente && requiereCuit && !cliente.cuit) {
+      return setError(`La ${tipoEnTexto(form.tipo)} requiere un cliente con CUIT. Editá el cliente o elegí otro tipo.`)
+    }
     if (!padComprobante(form.nro_comprobante)) return setError("Ingresá el número de comprobante")
-    if (!(neto > 0)) return setError("Ingresá un importe neto válido")
-    if (!(iva >= 0)) return setError("El IVA no es válido")
+    if (!Number.isFinite(neto) || neto === 0) return setError("Ingresá un importe neto válido")
+    if (!Number.isFinite(iva)) return setError("El IVA no es válido")
     if (!(dolar > 0)) return setError("Ingresá la cotización del dólar")
 
-    setSaving(true)
-    try {
-      const r = await fetch("/api/ventas", {
+    const send = (permitir_duplicado: boolean) =>
+      fetch("/api/ventas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tipo: form.tipo,
           nro_comprobante: form.nro_comprobante,
           fecha: form.fecha,
-          cliente_id: cliente.id,
+          cliente_id: sinCliente ? null : cliente!.id,
           neto_ars: neto,
           iva_ars: iva,
           dolar,
           observacion: form.observacion,
+          permitir_duplicado,
         }),
       })
-      const data = await r.json()
+
+    setSaving(true)
+    try {
+      let r = await send(false)
+      let data = await r.json()
+      if (r.status === 409 && data.duplicado) {
+        if (!confirm(`${data.error}.\n\n¿Registrar igual? (por ejemplo, si es de otro punto de venta)`)) return
+        r = await send(true)
+        data = await r.json()
+      }
       if (!r.ok) throw new Error(data.error || "Error al registrar la venta")
 
       const [y, m] = form.fecha.split("-").map(Number)
-      if (y === anio && m === mes) {
+      if (y === anio && (mes === 0 || m === mes)) {
         setVentas((prev) => [...prev, data].sort((a, b) => a.fecha.localeCompare(b.fecha)))
       }
-      setSuccess(`${TIPO_LABEL[form.tipo]} ${data.nro_comprobante} registrada para ${cliente.razon_social}`)
+      setSuccess(
+        `${TIPO_LABEL[form.tipo]} ${data.nro_comprobante} registrada` +
+          (cliente && !sinCliente ? ` para ${cliente.razon_social}` : " (consumidor final)")
+      )
 
       // Keep type, date and dollar for the next entry
-      setForm((f) => ({ ...emptyForm(), tipo: f.tipo, fecha: f.fecha, dolar: f.dolar }))
+      setForm((f) => ({ ...emptyForm(f.tipo), fecha: f.fecha, dolar: f.dolar }))
       setIvaTouched(false)
       setCliente(null)
       setClienteQuery("")
@@ -220,12 +267,12 @@ export default function ManageSalesClient() {
   const totales = useMemo(() => {
     return ventas.reduce(
       (acc, v) => {
-        acc.neto += signed(v, v.neto_ars)
-        acc.iva += signed(v, v.iva_ars)
-        acc.total += signed(v, v.total_ars)
-        acc.netoUsd += signed(v, v.neto_ars / v.dolar)
-        acc.ivaUsd += signed(v, v.iva_ars / v.dolar)
-        acc.totalUsd += signed(v, v.total_ars / v.dolar)
+        acc.neto += v.neto_ars
+        acc.iva += v.iva_ars
+        acc.total += v.total_ars
+        acc.netoUsd += v.neto_usd
+        acc.ivaUsd += v.iva_usd
+        acc.totalUsd += v.total_usd
         return acc
       },
       { neto: 0, iva: 0, total: 0, netoUsd: 0, ivaUsd: 0, totalUsd: 0 }
@@ -236,25 +283,25 @@ export default function ManageSalesClient() {
   const exportCsv = () => {
     const num = (n: number) => n.toFixed(2).replace(".", ",")
     const header = [
-      "Tipo", "N° FACTURA", "AÑO", "MES", "DÍA", "CUIT", "CLIENTE",
+      "TIPO FACT.", "N° FACT", "AÑO", "MES", "DÍA", "CUIT", "CLIENTE",
       "Facturación [$]", "IVA", "TOTAL", "Facturación [U$s]", "IVA [U$s]", "TOTAL [U$s]", "DÓLAR",
     ]
     const rows = ventas.map((v) => {
       const [y, m] = v.fecha.split("-")
       return [
-        TIPO_LABEL[v.tipo],
+        v.tipo,
         v.nro_comprobante,
         y,
         String(Number(m)),
         formatFecha(v.fecha),
         v.clientes?.cuit ?? "",
         `"${(v.clientes?.razon_social ?? "").replace(/"/g, '""')}"`,
-        num(signed(v, v.neto_ars)),
-        num(signed(v, v.iva_ars)),
-        num(signed(v, v.total_ars)),
-        num(signed(v, v.neto_ars / v.dolar)),
-        num(signed(v, v.iva_ars / v.dolar)),
-        num(signed(v, v.total_ars / v.dolar)),
+        num(v.neto_ars),
+        num(v.iva_ars),
+        num(v.total_ars),
+        num(v.neto_usd),
+        num(v.iva_usd),
+        num(v.total_usd),
         num(v.dolar),
       ]
     })
@@ -262,12 +309,13 @@ export default function ManageSalesClient() {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
     const a = document.createElement("a")
     a.href = url
-    a.download = `ventas-${anio}-${String(mes).padStart(2, "0")}.csv`
+    a.download = mes ? `ventas-${anio}-${String(mes).padStart(2, "0")}.csv` : `ventas-${anio}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const years = Array.from({ length: 6 }, (_, i) => now.getFullYear() - i)
+  const years = Array.from({ length: now.getFullYear() - PRIMER_ANIO + 1 }, (_, i) => now.getFullYear() - i)
+  const periodo = mes ? `${MESES[mes - 1].toLowerCase()} ${anio}` : String(anio)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-12 px-4">
@@ -275,7 +323,7 @@ export default function ManageSalesClient() {
         <div className="mb-8">
           <BackToAdminButton />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Ventas</h1>
-          <p className="text-gray-600">Registrá facturas y notas de crédito</p>
+          <p className="text-gray-600">Registrá facturas, notas de crédito y notas de débito</p>
         </div>
 
         {error && (
@@ -296,26 +344,31 @@ export default function ManageSalesClient() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Registrar venta</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Comprobante</label>
-                <div className="flex rounded-lg border border-gray-300 overflow-hidden">
-                  {(["factura", "nota_credito"] as TipoComprobante[]).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setForm({ ...form, tipo: t, nro_comprobante: "" })}
-                      className={`flex-1 px-3 py-2 text-sm font-semibold transition-colors ${
-                        form.tipo === t
-                          ? t === "factura" ? "bg-primary text-white" : "bg-red-600 text-white"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {TIPO_LABEL[t]}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {TIPOS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => changeTipo(t)}
+                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                      form.tipo === t
+                        ? `${TIPO_ACTIVE_CLASS[t]} border-transparent`
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="mr-1.5 font-mono">{t}</span>
+                    <span className="font-normal">{TIPO_LABEL[t]}</span>
+                  </button>
+                ))}
               </div>
+              {form.tipo === "NC" && (
+                <p className="mt-2 text-xs text-red-600">Ingresá los importes en positivo: la nota de crédito se registra restando.</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   N° de comprobante <span className="text-red-500">*</span>
@@ -345,10 +398,30 @@ export default function ManageSalesClient() {
 
             {/* Client picker */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cliente <span className="text-red-500">*</span>
-              </label>
-              {creatingClient ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Cliente {!sinCliente && <span className="text-red-500">*</span>}
+                </label>
+                {permiteSinCliente && (
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={consumidorFinal}
+                      onChange={(e) => {
+                        setConsumidorFinal(e.target.checked)
+                        setCreatingClient(false)
+                      }}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    Consumidor final sin identificar
+                  </label>
+                )}
+              </div>
+              {sinCliente ? (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                  Se registra sin cliente (consumidor final).
+                </div>
+              ) : creatingClient ? (
                 <div className="rounded-lg border border-primary/30 bg-slate-50 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">Nuevo cliente</h3>
@@ -384,7 +457,7 @@ export default function ManageSalesClient() {
                     />
                     {cliente && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-gray-500">
-                        {formatCuit(cliente.cuit)}
+                        {cliente.cuit ? formatCuit(cliente.cuit) : "Sin CUIT"}
                       </span>
                     )}
                     {showSuggestions && !cliente && (
@@ -401,12 +474,19 @@ export default function ManageSalesClient() {
                                 className="flex w-full items-center justify-between gap-4 px-4 py-2 text-left text-sm hover:bg-slate-50"
                               >
                                 <span className="font-medium text-gray-900">{c.razon_social}</span>
-                                <span className="font-mono text-gray-500 whitespace-nowrap">{formatCuit(c.cuit)}</span>
+                                <span className="font-mono text-gray-500 whitespace-nowrap">
+                                  {c.cuit ? formatCuit(c.cuit) : "Sin CUIT"}
+                                </span>
                               </button>
                             </li>
                           ))
                         )}
                       </ul>
+                    )}
+                    {cliente && requiereCuit && !cliente.cuit && (
+                      <p className="mt-1 text-xs text-red-600">
+                        Este cliente no tiene CUIT: no se le puede emitir una {tipoEnTexto(form.tipo)}.
+                      </p>
                     )}
                   </div>
                   <button
@@ -486,7 +566,7 @@ export default function ManageSalesClient() {
               </div>
             </div>
 
-            {Number.isFinite(total) && dolar > 0 && (
+            {Number.isFinite(total) && dolar > 0 && neto !== 0 && (
               <p className="text-sm text-gray-600">
                 Equivale a <span className="font-semibold">{formatUSD(total / dolar)}</span>
                 {" "}(neto {formatUSD(neto / dolar)} + IVA {formatUSD(iva / dolar)})
@@ -499,7 +579,7 @@ export default function ManageSalesClient() {
                 type="text"
                 value={form.observacion}
                 onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-                placeholder={form.tipo === "nota_credito" ? "Ej: anula factura 00002765" : "Opcional"}
+                placeholder={form.tipo === "NC" ? "Ej: anula factura A 00002765" : "Opcional"}
                 className={inputClass}
               />
             </div>
@@ -508,11 +588,15 @@ export default function ManageSalesClient() {
               type="submit"
               disabled={saving}
               className={`flex items-center gap-2 rounded-lg px-6 py-2 font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
-                form.tipo === "factura" ? "bg-primary hover:bg-primary-dark" : "bg-red-600 hover:bg-red-700"
+                form.tipo === "NC"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : form.tipo === "ND"
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-primary hover:bg-primary-dark"
               }`}
             >
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-              {saving ? "Guardando..." : `Registrar ${TIPO_LABEL[form.tipo].toLowerCase()}`}
+              {saving ? "Guardando..." : `Registrar ${tipoEnTexto(form.tipo)}`}
             </button>
           </form>
         </div>
@@ -523,6 +607,7 @@ export default function ManageSalesClient() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
               <select value={mes} onChange={(e) => setMes(Number(e.target.value))} className={inputClass}>
+                <option value={0}>Todo el año</option>
                 {MESES.map((m, i) => (
                   <option key={m} value={i + 1}>{m}</option>
                 ))}
@@ -554,7 +639,7 @@ export default function ManageSalesClient() {
           </div>
         ) : ventas.length === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center shadow">
-            <p className="text-gray-500">No hay ventas registradas en {MESES[mes - 1].toLowerCase()} {anio}.</p>
+            <p className="text-gray-500">No hay ventas registradas en {periodo}.</p>
           </div>
         ) : (
           <div className="rounded-lg border border-gray-200 bg-white shadow overflow-hidden">
@@ -562,7 +647,8 @@ export default function ManageSalesClient() {
               <table className="w-full text-sm whitespace-nowrap">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
                   <tr>
-                    <th className="px-3 py-3 text-left font-semibold">N° Factura</th>
+                    <th className="px-3 py-3 text-left font-semibold">Tipo</th>
+                    <th className="px-3 py-3 text-left font-semibold">N° Fact.</th>
                     <th className="px-3 py-3 text-left font-semibold">Día</th>
                     <th className="px-3 py-3 text-left font-semibold">CUIT</th>
                     <th className="px-3 py-3 text-left font-semibold">Cliente</th>
@@ -578,26 +664,26 @@ export default function ManageSalesClient() {
                 </thead>
                 <tbody>
                   {ventas.map((v, idx) => {
-                    const nc = v.tipo === "nota_credito"
+                    const color = v.tipo === "NC" ? "text-red-600" : v.tipo === "ND" ? "text-amber-700" : "text-gray-900"
                     return (
                       <tr
                         key={v.id}
-                        className={`border-b border-gray-200 ${nc ? "text-red-600" : "text-gray-900"} ${idx % 2 ? "bg-slate-50" : "bg-white"}`}
+                        className={`border-b border-gray-200 ${color} ${idx % 2 ? "bg-slate-50" : "bg-white"}`}
                         title={v.observacion ?? undefined}
                       >
-                        <td className="px-3 py-2 font-mono">
-                          {v.nro_comprobante}
-                          {nc && <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs font-sans font-semibold">NC</span>}
-                        </td>
+                        <td className="px-3 py-2 font-mono font-semibold" title={TIPO_LABEL[v.tipo]}>{v.tipo}</td>
+                        <td className="px-3 py-2 font-mono">{v.nro_comprobante}</td>
                         <td className="px-3 py-2">{formatFecha(v.fecha)}</td>
-                        <td className="px-3 py-2 font-mono">{v.clientes?.cuit}</td>
-                        <td className="px-3 py-2 max-w-xs truncate">{v.clientes?.razon_social}</td>
-                        <td className="px-3 py-2 text-right">{formatARS(signed(v, v.neto_ars))}</td>
-                        <td className="px-3 py-2 text-right">{formatARS(signed(v, v.iva_ars))}</td>
-                        <td className="px-3 py-2 text-right font-semibold">{formatARS(signed(v, v.total_ars))}</td>
-                        <td className="px-3 py-2 text-right">{formatUSD(signed(v, v.neto_ars / v.dolar))}</td>
-                        <td className="px-3 py-2 text-right">{formatUSD(signed(v, v.iva_ars / v.dolar))}</td>
-                        <td className="px-3 py-2 text-right font-semibold">{formatUSD(signed(v, v.total_ars / v.dolar))}</td>
+                        <td className="px-3 py-2 font-mono">{v.clientes?.cuit ?? ""}</td>
+                        <td className="px-3 py-2 max-w-xs truncate">
+                          {v.clientes?.razon_social ?? <span className="italic text-gray-400">Consumidor final</span>}
+                        </td>
+                        <td className="px-3 py-2 text-right">{formatARS(v.neto_ars)}</td>
+                        <td className="px-3 py-2 text-right">{formatARS(v.iva_ars)}</td>
+                        <td className="px-3 py-2 text-right font-semibold">{formatARS(v.total_ars)}</td>
+                        <td className="px-3 py-2 text-right">{formatUSD(v.neto_usd)}</td>
+                        <td className="px-3 py-2 text-right">{formatUSD(v.iva_usd)}</td>
+                        <td className="px-3 py-2 text-right font-semibold">{formatUSD(v.total_usd)}</td>
                         <td className="px-3 py-2 text-right">{v.dolar}</td>
                         <td className="px-3 py-2 text-right">
                           <button
@@ -615,8 +701,8 @@ export default function ManageSalesClient() {
                 </tbody>
                 <tfoot className="bg-gray-100 font-bold text-gray-900">
                   <tr>
-                    <td className="px-3 py-3" colSpan={4}>
-                      Total {MESES[mes - 1].toLowerCase()} ({ventas.length} comprobantes)
+                    <td className="px-3 py-3" colSpan={5}>
+                      Total {periodo} ({ventas.length} comprobantes)
                     </td>
                     <td className="px-3 py-3 text-right">{formatARS(totales.neto)}</td>
                     <td className="px-3 py-3 text-right">{formatARS(totales.iva)}</td>

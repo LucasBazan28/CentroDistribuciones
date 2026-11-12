@@ -13,11 +13,12 @@ function parseCliente(body: Record<string, unknown>) {
   const razon_social = String(body.razon_social ?? "").trim()
 
   if (!razon_social) return { error: "La razón social es obligatoria" }
-  if (!isValidCuit(cuit)) return { error: "El CUIT no es válido (11 dígitos con dígito verificador correcto)" }
+  // CUIT is optional (final consumers), but when present it must be valid.
+  if (cuit && !isValidCuit(cuit)) return { error: "El CUIT no es válido (11 dígitos con dígito verificador correcto)" }
 
   return {
     data: {
-      cuit,
+      cuit: cuit || null,
       razon_social: razon_social.toUpperCase(),
       email: optional(body.email),
       telefono: optional(body.telefono),
