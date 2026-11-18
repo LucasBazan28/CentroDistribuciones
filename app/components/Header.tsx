@@ -254,14 +254,31 @@ export default function Header() {
             )}*/}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="rounded-md p-2 text-gray-700 lg:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Menú"
-          >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile cart + hamburger */}
+          <div className="flex shrink-0 items-center lg:hidden">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setCartOpen(!cartOpen);
+              }}
+              className="relative rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:text-primary"
+              aria-label="Carrito"
+            >
+              <ShoppingCart size={22} />
+              {cartState.items.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                  {cartState.items.length}
+                </span>
+              )}
+            </button>
+            <button
+              className="rounded-md p-2 text-gray-700"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Menú"
+            >
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -335,15 +352,13 @@ export default function Header() {
                 Iniciar Sesión
               </a>
             )}
-            {!isProductsPage && (
-              <a
-                href="/cart?quote=true"
-                className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-                onClick={() => setMenuOpen(false)}
-              >
-                Pedir Presupuesto
-              </a>
-            )}
+            <a
+              href="/cart?quote=true"
+              className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+              onClick={() => setMenuOpen(false)}
+            >
+              Pedir Presupuesto
+            </a>
             {dollarRate && (
               <span className="text-sm font-semibold text-gray-700">
                 Dólar: ${dollarRate.toFixed(2)}
