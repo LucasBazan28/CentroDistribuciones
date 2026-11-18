@@ -49,7 +49,8 @@ export default function ProductCard({
             <span className="text-4xl font-light text-gray-300">P</span>
           </div>
         )}
-        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+        {/* Always visible on touch screens; on mouse devices it appears on hover/focus */}
+        <div className="absolute right-3 top-3 flex flex-col gap-2 transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">
           <button
             onClick={() => onAddToCart(product)}
             className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-primary hover:text-white"
